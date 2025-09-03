@@ -1,8 +1,17 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { AppModule } from '@root';
+import { Logger } from '@nestjs/common';
+import { HttpExceptionFilter } from '@common';
+import { swaggerConfiguration } from './common/documentation';
 
-async function bootstrap() {
+const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
-}
-bootstrap();
+  const adapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new HttpExceptionFilter(adapterHost));
+  swaggerConfiguration.config(app);
+  await app.listen(3000);
+};
+bootstrap().then(() => {
+  const logger = new Logger('Main Logger');
+  logger.log('Server is started!');
+});
