@@ -16,7 +16,8 @@
     "baseUrl": "./src",
     "paths": {
       "@root": ["feature/root"],
-      "@common": ["common"]
+      "@common": ["common"],
+      "@security": ["security"]
     },
     "incremental": true,
     "skipLibCheck": true,

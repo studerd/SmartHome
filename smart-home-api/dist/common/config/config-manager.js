@@ -20,7 +20,7 @@ class ConfigManager {
             username: this.getValue(config_key_enum_1.ConfigKey.DB_USER),
             password: this.getValue(config_key_enum_1.ConfigKey.DB_PASSWORD),
             database: this.getValue(config_key_enum_1.ConfigKey.DB_DATABASE),
-            entities: [],
+            entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
             synchronize: (this.getValue(config_key_enum_1.ConfigKey.DB_SYNC) === 'true'),
         };
     }
