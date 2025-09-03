@@ -1,0 +1,13 @@
+<ng-container *ngIf="readonly;else editable">
+
+  <div class="input {{css}}">
+    <span class="{{css}}">{{control.value}}</span>
+  </div>
+</ng-container>
+
+<ng-template #editable>
+  <div class="input {{css}}" [class.hover]="inputFocus">
+    <input class="{{css}}" [type]="type" [placeholder]="label | translate " (focus)="inputFocus=true"
+           (blur)="inputFocus=false" [formControl]="control" autocomplete="new-password"/>
+  </div>
+</ng-template>

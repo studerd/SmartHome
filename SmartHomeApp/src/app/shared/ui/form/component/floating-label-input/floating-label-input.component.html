@@ -1,0 +1,6 @@
+<div class="input {{css}}">
+    <input class="floating-input" [type]="type" placeholder=" " (focus)="inputFocus=true"
+           (blur)="inputFocus=false" [formControl]="control" autocomplete="new-password">
+    <label class="floating-label"
+           [class.fixed-label]="inputFocus || control.value.length >0">{{label | translate}}</label>
+</div>

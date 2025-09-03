@@ -1,0 +1,6 @@
+<div class="background" [class.hide]="!loaderService.showLoader$()">
+    <div class="loader">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p class="message">{{loaderService.text$() | translate}}</p>
+    </div>
+</div>

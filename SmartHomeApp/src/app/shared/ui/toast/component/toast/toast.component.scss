@@ -1,0 +1,47 @@
+@keyframes animation {
+  0% {
+    position:absolute;
+    opacity: 0;
+    top: -100px
+  }
+  70%{
+    top:0;
+  }
+  100% {
+    position:relative;
+    width:100%;
+    opacity: 1;
+  }
+}
+.toast{
+  display: flex;
+  flex-direction: row;
+  gap:5px;
+
+  animation: ease .3s animation;
+}
+.body{
+  padding:5px;
+  flex:3;
+  text-align:left;
+  min-height:40px;
+  display: flex;
+  justify-content: flex-start;align-items: center;
+}
+.close,.icon{
+  width:40px;
+  height:40px;
+  display: flex;justify-content: center;align-items: center;
+}
+.success{
+  background:var(--theme-success-clear);
+  color:var(--theme-white);
+}
+.warning{
+  background:var(--theme-warning-clear);
+  color:var(--theme-white);
+}
+.error{
+  background:var(--theme-error-clear);
+  color:var(--theme-white);
+}

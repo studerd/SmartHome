@@ -1,0 +1,48 @@
+.input {
+  position: relative;
+}
+
+.floating-label {
+  position: absolute;
+  pointer-events: none;
+  left: 10px;
+  top: 10px;
+  transition: 0.2s ease all;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  color: var(--theme-white);
+}
+
+.fixed-label {
+  font-size: 12px;
+  height: 14px;
+}
+
+.floating-input {
+  width: 100%;
+  padding: 10px;
+  padding-top: 24px;
+  height: 56px;
+  background: transparent !important;
+  color: var(--theme-pink);
+  border: 1px solid var(--theme-dark);
+  box-sizing: border-box;
+  text-align: left;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.profileForm {
+  .floating-input {
+    border: 1px solid var(--theme-white);
+  }
+  .floating-label {
+    color: var(--theme-label-text);
+  }
+}

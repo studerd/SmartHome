@@ -4,6 +4,30 @@
   "compileOnSave": false,
   "compilerOptions": {
     "strict": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@root": [
+        "app/feature/root"
+      ],
+      "@guest": [
+        "app/guest"
+      ],
+      "@shared": [
+        "app/shared"
+      ],
+      "@core": [
+        "app/shared/core"
+      ],
+      "@api": [
+        "app/shared/api"
+      ],
+      "@env": [
+        "environments"
+      ],
+      "@type": [
+        "app/shared/type"
+      ]
+    },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,

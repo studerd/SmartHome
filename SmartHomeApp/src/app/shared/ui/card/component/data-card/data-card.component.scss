@@ -1,0 +1,28 @@
+
+.part {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  gap: 10px;
+
+  .title {
+    font-family: 'Lexend-Regular';
+    text-transform: uppercase;
+    text-align: left;
+  }
+
+  .inputs {
+    padding: 10px;
+    width: 100%;
+    background: var(--theme-white);
+
+    border-radius: 5px;
+    color: var(--theme-label-text);
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+}

@@ -1,0 +1,38 @@
+.hover {
+  background: var(--theme-white);
+  border: 1px solid var(--theme-eee);
+}
+
+.input {
+  margin: auto;
+  border: 1px solid var(--theme-standard-bg);
+  transition: var(--transition-smooth);
+  border-radius: 20px;
+  max-width: 350px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+
+
+  input {
+    padding: 5px;
+    flex: 3;
+  }
+
+  .pseudoLabel {
+    height: 30px;
+    font-size: 22px;
+    color: var(--theme-pink)
+  }
+
+  .smallLabel {
+    height: 25px;
+    font-size:14px;
+  }
+
+  &:hover {
+    @extend .hover;
+  }
+}

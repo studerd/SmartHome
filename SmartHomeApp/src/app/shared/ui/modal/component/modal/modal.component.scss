@@ -1,0 +1,29 @@
+
+.popper {
+  position: fixed;
+  bottom: -500px;
+  background: var(--theme-white);
+  padding: 10px;
+  width: 450px;
+  left: 50%;
+  margin-left: -225px;
+  border: 1px solid var(--theme-eee);
+  transition: var(--transition-smooth);
+}
+
+.show-popper {
+  bottom: 50%;
+  margin-left: -150px;
+}
+
+@media screen and (max-width: 600px) {
+  .popper {
+    width: 100%;
+    margin-left: 0;
+    left: 0;
+  }
+  .show-popper {
+    bottom: 0;
+    margin-bottom: 0;
+  }
+}

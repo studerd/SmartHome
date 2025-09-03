@@ -1,0 +1,18 @@
+.toaster {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 10000;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding:10px;
+
+}
+
+@media screen and (max-width: 600px) {
+  .toaster {
+    width: 100%;
+  }
+}

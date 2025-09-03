@@ -1,0 +1,12 @@
+:host {
+  width: 100%;
+}
+
+.card {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  background:var(--theme-white);
+  border: 1px solid var(--theme-eee);
+  padding: 1rem;
+}

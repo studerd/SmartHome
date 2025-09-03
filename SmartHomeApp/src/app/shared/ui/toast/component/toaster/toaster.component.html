@@ -1,0 +1,3 @@
+<div class="toaster">
+  <app-toast *ngFor="let toast of toastService.toast$()" [toast]="toast" (remove)="remove($event)"></app-toast>
+</div>
