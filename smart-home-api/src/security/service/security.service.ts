@@ -13,6 +13,7 @@ import { TokenService } from './token.service';
 import { isNil } from 'lodash';
 import { comparePassword, encryptPassword } from '@common';
 import { Builder } from 'builder-pattern';
+import { ulid } from 'ulid';
 
 @Injectable()
 export class SecurityService {
@@ -44,6 +45,7 @@ export class SecurityService {
     try {
       const encryptedPassword = await encryptPassword(payload.password);
       const newCredential: Credential = Builder<Credential>()
+        .credential_id(ulid())
         .username(payload.username)
         .password(encryptedPassword)
         .mail(payload.mail).build();
