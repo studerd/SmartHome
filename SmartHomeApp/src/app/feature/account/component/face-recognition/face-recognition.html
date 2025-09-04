@@ -1,19 +1,7 @@
-<div class="demo">
-  <div class="stage mirror">
+<div class="face-recognizator">
+  <div class="viewport mirror" [style.--zoom]="1.35">
     <video #video class="video" playsinline autoplay muted></video>
     <canvas #canvas class="canvas"></canvas>
   </div>
-
-  <div class="side">
-    <h4>Log</h4>
-    <div class="log">
-      <p>roll : {{roll$()}}</p>
-      <p>pitch : {{pitch$()}}</p>
-      <p>yaw : {{yaw$()}}</p>
-      <p>expression : {{expression$()}}</p>
-      <p>gender : {{gender$()}}</p>
-      <p>age : {{age$()}}</p>
-      <p>position : {{position$()}}</p>
-    </div>
-  </div>
+  <div class="ring" [style]="styleRing$()"></div>
 </div>

@@ -1,15 +1,13 @@
-import {Component, computed, effect, ElementRef, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
+import {Component, effect, ElementRef, OnDestroy, OnInit, signal, ViewChild, WritableSignal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import * as faceapi from '@vladmandic/face-api';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-wasm';
-import {FaceDirection} from '../../data/enum';
+import {FaceDirection, FaceEmotion, FaceEnrollmentPayload, FaceRecognitionContext, FaceSnap} from '../../data';
+import {isNil} from 'lodash';
+import {FaceRecognitionUtil} from '../../util';
 
-type FaceExpressions = {
-  neutral?: number; happy?: number; sad?: number; angry?: number;
-  fearful?: number; disgusted?: number; surprised?: number;
-};
 
 @Component({
   selector: 'app-face-recognition',
@@ -21,21 +19,25 @@ type FaceExpressions = {
 export class FaceRecognition implements OnInit, OnDestroy {
   @ViewChild('video', {static: true}) videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas', {static: true}) canvasRef!: ElementRef<HTMLCanvasElement>;
-  yaw$ = signal<number>(0);
-  roll$ = signal<number>(0);
-  pitch$ = signal<number>(0);
+  context$: WritableSignal<FaceRecognitionContext> = signal({
+    yaw: 0, roll: 0, pitch: 0, pitchNeutralValue: 0, age: 0, gender: 'unknown', expression: FaceEmotion.NEUTRAL
+  })
+  styleRing$: WritableSignal<string> = signal('');
+  snapList$: WritableSignal<FaceSnap[]> = signal([]);
   pitchNeutralValue$ = signal<number>(0);
-  age$ = signal<number>(0);
-  gender$ = signal<string>('unknown');
-  expression$ = signal<string>('unknown');
-  position$ = computed<FaceDirection>(() => this.checkPosition(this.pitch$(), this.yaw$()));
-// déclencheur : à chaque changement de yaw/roll → checkPosition()
   private posEffect = effect(() => {
-    this.setNeutralValue(this.yaw$(), this.roll$())
+    this.setNeutralValue(this.context$())
+  });
+  private fillRecoEffect = effect(() => {
+    this.checkPosition(this.pitchNeutralValue$());
   });
   // modèles
   private cal: number[] = [];
-
+  readonly enroll_target = 8;
+  private readonly min_score = 0.5;     // score détection mini
+  private readonly min_face_ratio = 0.28; // visage >= 28% du côté min
+  private readonly max_abs_yaw = 20;    // |yaw| ≤ 20° recommandé
+  private readonly max_abs_pitch = 15;  // |pitch| ≤ 15° recommandé
   private readonly modelPath = 'assets/face-detector-model/';
   private readonly minScore = 0.2;
   private readonly maxResults = 5;
@@ -196,20 +198,20 @@ export class FaceRecognition implements OnInit, OnDestroy {
 
       // 3) Expression (top) + Age/Gender (si présents) + Angles
 
-      const {roll, pitch, yaw} = this.estimateAngles(lm);
+      const {roll, pitch, yaw} = FaceRecognitionUtil.estimateAngles(lm);
       if (person === data[0]) {
         const exp = (person?.expressions ?? {}) as Record<string, number>;
         const entries = Object.entries(exp) as [string, number][];
         const topExpr = entries.length ? entries.sort((a, b) => b[1] - a[1])[0] : null;
-
-        this.yaw$.set(yaw);
-        this.roll$.set(roll);
-        this.gender$.set(person.gender);
-        this.age$.set(Math.floor(person.age));
-        this.pitch$.set(pitch);
-        if (topExpr) {
-          this.expression$.set(topExpr[0]);
-        }
+        this.context$.set({
+          ...this.context$(),
+          yaw,
+          roll,
+          gender: person.gender,
+          age: Math.floor(person.age),
+          pitch,
+          expression: topExpr ? topExpr[0].toUpperCase() as FaceEmotion : FaceEmotion.NEUTRAL
+        })
 
       }
 
@@ -226,31 +228,10 @@ export class FaceRecognition implements OnInit, OnDestroy {
     }
   }
 
-// Angles approx (comme la démo)
-  private estimateAngles(lm: faceapi.FaceLandmarks68): { roll: number; pitch: number; yaw: number } {
-    const c = (pts: faceapi.Point[]) => {
-      const n = pts.length;
-      const sx = pts.reduce((s, p) => s + p.x, 0), sy = pts.reduce((s, p) => s + p.y, 0);
-      return new faceapi.Point(sx / n, sy / n);
-    };
-    const cL = c(lm.getLeftEye());
-    const cR = c(lm.getRightEye());
-    const dist = Math.hypot(cR.x - cL.x, cR.y - cL.y) || 1;
-    const nose = lm.getNose()[6];
 
-    const rollRad = Math.atan2(cR.y - cL.y, cR.x - cL.x);
-    const yawDeg = ((nose.x - (cL.x + cR.x) / 2) / dist) * 90;
-    const pitchDeg = ((nose.y - (cL.y + cR.y) / 2) / dist) * 90;
-
-    return {
-      roll: Math.round((rollRad * 180) / Math.PI),
-      pitch: Math.round(pitchDeg),
-      yaw: Math.round(yawDeg),
-    };
-  }
-  private setNeutralValue(yaw: number, roll: number): void {
-    if (this.pitchNeutralValue$() === 0 && Math.abs(yaw) < 8 && Math.abs(roll) < 12) {
-      this.cal.push(this.pitch$());
+  private setNeutralValue(context: FaceRecognitionContext): void {
+    if (this.pitchNeutralValue$() === 0 && Math.abs(context.yaw) < 8 && Math.abs(context.roll) < 12) {
+      this.cal.push(context.pitch);
       if (this.cal.length >= 10) { // ~10 échantillons
         const avg = this.cal.reduce((s, v) => s + v, 0) / this.cal.length;
         this.pitchNeutralValue$.set(parseInt(avg.toFixed(1)));
@@ -259,32 +240,151 @@ export class FaceRecognition implements OnInit, OnDestroy {
     }
   }
 
-  private checkPosition(pitch: number, yaw: number): FaceDirection {
-    if (this.pitchNeutralValue$() > 0) {
+  async stopAndCleanup(reason?: string): Promise<void> {
+    try {
+      // 1) arrêter la boucle de rendu/détection
+      if (this.rafId) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = undefined;
+      }
+      if ((this as any).timer) {            // au cas où tu as un setInterval ailleurs
+        clearInterval((this as any).timer);
+        (this as any).timer = undefined;
+      }
+
+      // 2) retirer les écouteurs
+      const canvas = this.canvasRef?.nativeElement;
+
+      // 3) stopper la caméra
+      if (this.stream) {
+        for (const t of this.stream.getTracks()) {
+          try {
+            t.stop();
+          } catch {
+          }
+        }
+        this.stream = undefined;
+      }
+
+      // 4) mettre la vidéo en pause & libérer la source
+      const video = this.videoRef?.nativeElement;
+      if (video) {
+        try {
+          video.pause();
+        } catch {
+        }
+        // @ts-ignore
+        video.srcObject = null;
+        video.removeAttribute('src');
+        video.load?.();
+      }
+
+      // 5) nettoyer l’overlay (canvas)
+      if (canvas && this.ctx) {
+        this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // si tu veux libérer la mémoire du buffer :
+        // canvas.width = 0; canvas.height = 0;
+      }
+      // 7) (optionnel) purge TFJS variables (si utilisées)
+      try {
+        (faceapi.tf as any)?.engine?.().disposeVariables?.();
+      } catch {
+      }
+      try {
+        (tf as any)?.disposeVariables?.();
+      } catch {
+      }
+    } finally {
+      if (reason) console.log('[stopAndCleanup]', reason);
+    }
+  }
+
+  private checkPosition(pitchNeutral: number): void {
+    const {yaw, pitch} = this.context$();
+
+    let position: FaceDirection;
+    if (pitchNeutral > 0) {
       if (this.pitchNeutralValue$() - pitch > 4) {
         if (yaw > 4) {
-          return FaceDirection.TOP_LEFT;
+          position = FaceDirection.TOP_LEFT;
         } else if (yaw < -4) {
-          return FaceDirection.TOP_RIGHT;
+          position = FaceDirection.TOP_RIGHT;
+        } else {
+          position = FaceDirection.TOP;
         }
-        return FaceDirection.TOP;
       } else if (this.pitchNeutralValue$() - pitch < -4) {
 
         if (yaw > 4) {
-          return FaceDirection.BOTTOM_LEFT;
+          position = FaceDirection.BOTTOM_LEFT;
         } else if (yaw < -4) {
-          return FaceDirection.BOTTOM_RIGHT;
+          position = FaceDirection.BOTTOM_RIGHT;
+        } else {
+          position = FaceDirection.BOTTOM;
         }
-        return FaceDirection.BOTTOM;
       } else {
         if (yaw > 4) {
-          return FaceDirection.LEFT;
+          position = FaceDirection.LEFT;
         } else if (yaw < -4) {
-          return FaceDirection.RIGHT;
+          position = FaceDirection.RIGHT;
+        } else {
+          position = FaceDirection.FACE
         }
-        return FaceDirection.FACE
+      }
+      // on traite les captures
+      this.getCaptureIfNeeded(position).then();
+    }
+  }
+
+  private async getCaptureIfNeeded(position: FaceDirection): Promise<void> {
+    const list: FaceSnap[] = this.snapList$();
+    let founded = list.find(item => item.position === position);
+    if (isNil(founded)) {
+      const value = await FaceRecognitionUtil.pushOneSample(this.videoRef, this.optionsSSDMobileNet);
+      if (value) {
+        list.push({position, emotion: this.context$().expression, value});
       }
     }
-    return FaceDirection.FACE;
+    this.setRingStyle(list);
+    this.snapList$.set(list);
+    if (list.length === 9) {
+      console.log('on a tous!');
+      console.log(list);
+      const res = FaceRecognitionUtil.buildEnrollment(list.map(i => i.value) /*, qualities? */);
+      console.log(res);
+      this.stopAndCleanup().then();
+    }
+  }
+
+  private setRingStyle(list: FaceSnap[]): void {
+    let style: string = '';
+    for (let item of list) {
+      switch (item.position) {
+        case FaceDirection.TOP:
+          style += '--c0:#22c55e;';
+          break;
+        case FaceDirection.TOP_RIGHT:
+          style += '--c1:#22c55e;';
+          break;
+        case FaceDirection.RIGHT:
+          style += '--c2:#22c55e;';
+          break;
+        case FaceDirection.BOTTOM_RIGHT:
+          style += '--c3:#22c55e;';
+          break;
+        case FaceDirection.BOTTOM:
+          style += '--c4:#22c55e;';
+          break;
+        case FaceDirection.BOTTOM_LEFT:
+          style += '--c5:#22c55e;';
+          break;
+        case FaceDirection.LEFT:
+          style += '--c6:#22c55e;';
+          break;
+        case FaceDirection.TOP_LEFT:
+          style += '--c7:#22c55e;';
+          break;
+      }
+    }
+    this.styleRing$.set(style);
   }
 }
