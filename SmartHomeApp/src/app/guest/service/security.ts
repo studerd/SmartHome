@@ -16,4 +16,12 @@ export class SecurityService {
       paramError: false
     })
   }
+  enrollFace(payload: { username: string; descriptor: number[] }):Observable<ApiResponse> {
+    return of({
+      result: true,
+      code: ApiCodeResponse.TEST,
+      data: '',
+      paramError: false
+    })
+  }
 }

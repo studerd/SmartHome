@@ -1,0 +1,11 @@
+export enum FaceDirection {
+  FACE = 'FACE',
+  BOTTOM = 'BOTTOM',
+  BOTTOM_LEFT = 'BOTTOM_LEFT',
+  BOTTOM_RIGHT = 'BOTTOM_RIGHT',
+  TOP = 'TOP',
+  TOP_LEFT = 'TOP_LEFT',
+  TOP_RIGHT = 'TOP_RIGHT',
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT'
+}

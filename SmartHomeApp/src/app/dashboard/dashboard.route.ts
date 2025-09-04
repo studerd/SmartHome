@@ -9,6 +9,11 @@ export const dashboardRoutes: Routes = [
       .then(p => p.DashboardRouter),
     children: [
       {
+        path: '',
+        redirectTo: AppNode.ACCOUNT,
+        pathMatch: 'full'
+      },
+      {
         path: AppNode.ACCOUNT,
         loadChildren: () => import('../feature/account/account.route').then(r => r.accountRoutes)
       }

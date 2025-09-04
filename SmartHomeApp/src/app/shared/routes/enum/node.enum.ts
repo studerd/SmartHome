@@ -1,7 +1,8 @@
 export enum AppNode {
   DEFAULT = '',
   PUBLIC = '',
-  SHOP = 'shop',
+  LIST = 'list',
+  DETAIL = 'detail/',
   DASHBOARD = 'dashboard',
   SIGN_UP = 'sign-up',
   FORGOT_PASSWORD = 'forgot-password',
@@ -12,10 +13,5 @@ export enum AppNode {
   REDIRECT_TO_PUBLIC = AppNode.DEFAULT,
   REDIRECT_TO_AUTHENTICATED = AppNode.DASHBOARD,
   FALL_BACK = '**',
-  HOME = 'home',
-  MENU = 'menu',
-  CART = 'cart',
-  NOTIFICATION = 'notifications',
   ACCOUNT = 'account',
-  ORDERS = 'orders',
 }

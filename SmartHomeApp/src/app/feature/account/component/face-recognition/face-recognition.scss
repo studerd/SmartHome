@@ -1,0 +1,63 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* zone vidéo + overlay */
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 960px;         /* adapte si besoin */
+  aspect-ratio: 16 / 9;     /* gardez le ratio ; sinon supprimez */
+  margin: 0 auto;
+  background: #000;         /* fond si vidéo absente */
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* calques superposés */
+.video,
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;        /* crop & scale comme la démo */
+}
+
+.video { z-index: 1; }      /* vidéo au fond */
+.canvas {
+  z-index: 2;               /* overlay au-dessus */
+  pointer-events: none;     /* clics traversants */
+  background: transparent;  /* IMPORTANT: canvas overlay transparent */
+}
+
+/* badges d’info (ex: FPS, hints) */
+.fps,
+.hint {
+  position: absolute;
+  z-index: 3;
+  color: #fff;
+  font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  user-select: none;
+}
+
+.fps  { top: 10px; right: 10px; }
+.hint { bottom: 10px; left: 10px; }
+
+/* Mode miroir (selfie) : appliquer la classe .mirror à .stage */
+.stage.mirror .video,
+.stage.mirror .canvas {
+  transform: scaleX(-1);
+  transform-origin: center center;
+}
+
+/* Responsive petites largeurs (optionnel) */
+@media (max-width: 640px) {
+  .stage { border-radius: 8px; }
+  .fps, .hint { font-size: 11px; padding: 4px 6px; }
+}
