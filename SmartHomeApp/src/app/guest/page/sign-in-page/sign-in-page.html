@@ -1,9 +1,27 @@
-<i class="fa-sharp-duotone fa-solid fa-user-key"></i>
-<i class="fa-sharp-duotone fa-regular fa-user-key"></i>
-<i class="fa-sharp-duotone fa-light fa-user-key"></i>
-<i class="fa-sharp-duotone fa-thin fa-user-key"></i>
-<br>
-<i class="fa-solid fa-user-key"></i>
-<i class="fa-regular fa-user-key"></i>
-<i class="fa-light fa-user-key"></i>
-<i class="fa-thin fa-user-key"></i>
+<div class="sign-in-container">
+  <div class="sign-in-box">
+    <div class="header">
+      <div class="logo"></div>
+      <div class="pass">
+        <h1>{{ 'account-feature.page.sign-in.title' | translate }}</h1>
+        <div class="pins">
+          @for (item of pins$(); track $index) {
+            <div class="pin{{item.class}}"></div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="keyboard">
+      <div class="alphabet">
+        @for (item of alphabets; track $index) {
+          <div class="action" (click)='addToPin(item)'>{{ item }}</div>
+        }
+      </div>
+      <div class="numbers">
+        @for (item of numbers; track $index) {
+          <div class="action" (click)='addToPin(item)'>{{ item }}</div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

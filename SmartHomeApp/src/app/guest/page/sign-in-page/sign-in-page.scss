@@ -1,1 +1,65 @@
-i{font-size:35px}
+@use "assets/css/flex.css";
+
+.sign-in-container{
+  @extend .fc-cc;
+  display: flex;
+  min-height:100vh;
+  .sign-in-box{
+    height:60%;
+    padding:1rem;
+    display: flex;
+    flex-direction: column;
+    gap:60px;
+    .header{
+      padding-bottom:20px;
+      display: flex;
+      flex-direction: row;
+      .logo{width:250px;}
+      .pass{
+        flex:2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap:15px;
+        h1{
+          font-weight: 200;
+          font-size:1.5rem;
+        }
+        .pins{
+          display: flex;
+          flex-direction: row;gap:10px;
+          align-items: flex-end;
+          font-size:3rem;
+          .pin{
+            display: flex;
+            flex-direction: row;justify-content: flex-end;
+          }
+        }
+      }
+    }
+    .keyboard{
+      display: flex;flex-direction: row; gap:60px;
+      .action{
+        @extend .fc-cc;
+        border-radius: 50%;
+        border:1px solid var(--theme-color-neutral-txt-secondary);
+        width:80px;height:80px;
+        font-size:1.5rem;
+      }
+      .alphabet{
+        display: flex;
+        flex-wrap: wrap;              /* permet le retour à la ligne */
+        justify-content: center;      /* centre horizontalement */
+        gap: 20px;
+        width:700px;
+      }
+      .numbers{
+        display: flex;
+        flex-wrap: wrap;              /* permet le retour à la ligne */
+        justify-content: center;      /* centre horizontalement */
+        gap: 20px;
+        width:280px;
+      }
+    }
+  }
+}

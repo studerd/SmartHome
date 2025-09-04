@@ -1,2 +1,56 @@
-
 @use "assets/font/fontawesome/all.css";
+@use "assets/font/font.css";
+@use "assets/css/reset.css";
+@use "assets/css/flex.css";
+:root{
+  /* Fond et neutres */
+  --theme-color-bg: #f8fafc;              /* gris bleuté très clair (fond principal) */
+  --theme-color-surface: #ffffff;         /* cartes/panneaux */
+  --theme-color-neutral-txt: #1e293b;     /* texte principal anthracite */
+  --theme-color-neutral-txt-secondary: #64748b; /* texte secondaire gris bleuté */
+
+  /* Accents high-tech */
+  --theme-color-accent: #06b6d4;          /* cyan lumineux (connectivité) */
+  --theme-color-accent-alt: #7c3aed;      /* violet techno */
+
+  /* États système */
+  --theme-color-success: #16a34a;         /* vert énergique */
+  --theme-color-error: #dc2626;           /* rouge alerte */
+  --theme-color-warning: #f59e0b;         /* orange vif */
+  --theme-color-info: #2563eb;            /* bleu fort */
+}
+body {
+  /* Couleurs & texte */
+  background-color: var(--theme-color-bg);
+  color: var(--theme-color-neutral-txt);
+  font-family: 'Titillium-Light', sans-serif;
+  font-weight: 200;
+  font-size: 1rem; /* adaptatif grand écran */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Layout écran complet */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-width: 100vw;
+  overflow: hidden;
+
+  /* Flex layout */
+  display: flex;
+  flex-direction: row;        /* change en column si tu veux un layout vertical */
+  justify-content: stretch;
+  align-items: stretch;
+
+  /* Expérience tactile */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tous les enfants du body prennent l’espace dispo */
+body > * {
+  flex: 1 1 auto;   /* chaque enfant grandit/rapetisse pour remplir */
+  min-width: 0;     /* évite débordements horizontaux */
+  min-height: 0;    /* évite débordements verticaux */
+}

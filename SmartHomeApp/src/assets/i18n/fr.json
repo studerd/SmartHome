@@ -1,25 +1,5 @@
 {
   "api.error.payload.is-not-valid": "Les données envoyées sont invalides",
   "api.error.user-not-found": "L'utilisateur n'a pas été trouvé",
-  "account-feature.page.sign-in.title": "Connexion",
-  "account-feature.page.sign-in.email-label": "Email",
-  "account-feature.page.sign-in.password-label": "Mot de passe",
-  "account-feature.page.sign-in.forgot-password": "Mot de passe oublié ?",
-  "account-feature.page.sign-in.no-account": "Vous n’avez pas de compte ?",
-  "account-feature.page.sign-in.sign-up": "Inscrivez-vous",
-  "account-feature.page.sign-in.form-error.email-required": "L'email est nécessaire",
-  "account-feature.page.sign-in.form-error.email-email": "L'email est invalide",
-  "account-feature.page.sign-in.form-error.password-required": "Le mot de passe est nécessaire",
-  "account-feature.page.sign-up.title": "Créer un compte",
-  "account-feature.page.sign-up.email-label": "Adresse email",
-  "account-feature.page.sign-up.password-label": "Mot de passe",
-  "account-feature.page.sign-up.confirm-password-label": "Confirmer le mot de passe",
-  "account-feature.page.sign-up.sign-in": "Se connecter",
-  "account-feature.page.sign-up.already-account": "Vous avez déjà un compte ?",
-  "account-feature.page.sign-up.form-error.email-required": "L'adresse email est requise.",
-  "account-feature.page.sign-up.form-error.email-email": "L'adresse email n'est pas valide.",
-  "account-feature.page.sign-up.form-error.password-required": "Le mot de passe est requis.",
-  "account-feature.page.sign-up.form-error.confirmPassword-required": "La confirmation du mot de passe est requise.",
-  "account-feature.page.sign-up.form-error.password-mismatch": "Les mots de passe ne correspondent pas.",
-
+  "account-feature.page.sign-in.title": "Veuillez entrer le code pin"
 }

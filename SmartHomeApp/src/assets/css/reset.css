@@ -1,0 +1,90 @@
+/* ==========================================================================
+   Modern Reset CSS – combinaison Normalize.css + Andy Bell reset
+   ========================================================================== */
+
+/* 1. Box sizing et border-box par défaut */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 2. Supprimer marges par défaut */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* 3. Hauteur de ligne plus lisible */
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  font-size: 100%; /* base: 16px */
+}
+
+/* 4. Corps de page cohérent */
+body {
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, sans-serif;
+  background-color: #fff;
+  color: #000;
+}
+
+/* 5. Images et médias responsives */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* 6. Inherit font pour form controls */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* 7. Supprimer styles boutons et liens par défaut */
+button,
+[role="button"] {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* 8. Listes */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 9. Tables */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* 10. Accessibilité : respect motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

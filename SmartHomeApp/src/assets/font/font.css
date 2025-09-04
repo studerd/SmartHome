@@ -1,0 +1,72 @@
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/Figtree.ttf');
+}
+@font-face {
+  font-family: 'Lexend-Light';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/ReadexPro-Light.ttf');
+}
+@font-face {
+  font-family: 'Lexend-ExtraLight';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/ReadexPro-ExtraLight.ttf');
+}
+@font-face {
+  font-family: 'Lexend-Medium';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/ReadexPro-Medium.ttf');
+}
+@font-face {
+  font-family: 'Lexend-Regular';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/ReadexPro-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Figtree-Light';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/Figtree-Light.ttf');
+}
+
+@font-face {
+  font-family: 'Titillium-Light';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/TitilliumWeb-Light.ttf');
+}
+@font-face {
+  font-family: 'Titillium';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/TitilliumWeb-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'FigtreeSemiBold';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/Figtree-SemiBold.ttf');
+}
+
+@font-face {
+  font-family: 'OpenSans';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/OpenSans.ttf');
+}
+
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../font/Oswald.ttf');
+}
