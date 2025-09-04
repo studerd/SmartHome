@@ -2,11 +2,13 @@ import {Component, effect, signal, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {SignInPin} from '../../data';
 import {SignInUtil} from '../../util';
+import {SignInFace} from '../../component';
 
 @Component({
   selector: 'app-sign-in-page',
   imports: [
-    TranslatePipe
+    TranslatePipe,
+    SignInFace
   ],
   templateUrl: './sign-in-page.html',
   standalone: true,
