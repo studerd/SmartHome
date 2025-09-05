@@ -1,96 +1,77 @@
-/* Conteneur circulaire de 400x400 qui clippe tout ce qu'il contient */
-.viewport {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 400px;
-  height: 400px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--theme-color-bg); /* fond en cas d'absence de flux */
-  /* zoom paramétrable via CSS var (défaut 1 = pas de zoom) */
-  --zoom: 1;
-}
-
-/* Les deux calques couvrent la fenêtre et sont centrés/croppés */
-.video, .canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* centre & crop au ratio */
-  transform-origin: center center;
-  transform: scale(var(--zoom)); /* zoom au centre */
-}
-
-/* Overlay transparent au-dessus de la vidéo */
-.video {
-  z-index: 1;
-}
-
-.canvas {
-  z-index: 2;
-  pointer-events: none;
-  background: transparent;
-}
-
-
-/* Mode miroir : applique le flip aux DEUX calques, et garde le zoom */
-.viewport.mirror .video,
-.viewport.mirror .canvas {
-  transform: scaleX(-1) scale(var(--zoom));
-}
-
-
-.ring {
-  z-index: -1;
-  /* paramètres */
-  --size: 420px; /* diamètre */
-  --thickness: 10px; /* épaisseur de l’anneau */
-  --base: #eee; /* couleur par défaut des segments */
-  --sep: rgba(255, 255, 255, .06); /* couleur des séparateurs (1°) */
-  --active: #0ea5e9; /* couleur d’un segment actif */
-  --rot: -22.5deg; /* rotation globale du disque */
-  --bg: #0b1220; /* couleur de fond (centre) */
-
-  /* par défaut: tous les segments = base */
-  --c0: var(--base);
-  --c1: var(--base);
-  --c2: var(--base);
-  --c3: var(--base);
-  --c4: var(--base);
-  --c5: var(--base);
-  --c6: var(--base);
-  --c7: var(--base);
-
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
+/* new */
+.faceprint {
+  height: 450px;
   position: relative;
-  overflow: hidden;
-  transform: rotate(var(--rot));
 
-  /* 8 segments de 45° avec 1° de “sep” après chaque part */
-  background: conic-gradient(
-      var(--c0) 0deg 44deg, var(--sep) 44deg 45deg,
-      var(--c1) 45deg 89deg, var(--sep) 89deg 90deg,
-      var(--c2) 90deg 134deg, var(--sep) 134deg 135deg,
-      var(--c3) 135deg 179deg, var(--sep) 179deg 180deg,
-      var(--c4) 180deg 224deg, var(--sep) 224deg 225deg,
-      var(--c5) 225deg 269deg, var(--sep) 269deg 270deg,
-      var(--c6) 270deg 314deg, var(--sep) 314deg 315deg,
-      var(--c7) 315deg 359deg, var(--sep) 359deg 360deg
-  );
-}
+  .propose {
+    z-index: 2;
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    bottom:0;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    align-items: center;
+    justify-content: center;
+    background:var(--theme-color-surface);
+    span {
+      color: var(--theme-color-neutral-txt-secondary);
+      letter-spacing: .12em;
+      font-size: 14px;
+    }
 
-/* “Creuse” le centre : disque intérieur de la couleur de fond */
-.ring::before {
-  content: "";
-  position: absolute;
-  inset: var(--thickness); /* contrôle l’épaisseur de l’anneau */
-  border-radius: 50%;
-  background: var(--theme-color-bg); /* mets ici la couleur d’arrière-plan réelle */
-}
-.face-recognizator{
-  position:relative;
+    i {
+      font-size: 250px;
+
+    }
+  }
+
+  .face-recognizator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;align-items: center;
+    gap: 1rem;
+
+
+    .viewport {
+      position:relative;
+      border: 8px solid var(--theme-color-neutral-txt-secondary);
+      --zoom: 1;
+      overflow: hidden;
+      width:250px;height:250px;
+      border-radius:80px;
+
+      .video, .canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* centre & crop au ratio */
+        transform-origin: center center;
+        transform: scale(var(--zoom)); /* zoom au centre */
+      }
+
+      .video {
+        z-index: 1;
+      }
+
+      .canvas {
+        z-index: 2;
+        pointer-events: none;
+        background: transparent;
+      }
+
+      .viewport.mirror .video,
+      .viewport.mirror .canvas {
+        transform: scaleX(-1) scale(var(--zoom));
+      }
+    }
+  }
 }

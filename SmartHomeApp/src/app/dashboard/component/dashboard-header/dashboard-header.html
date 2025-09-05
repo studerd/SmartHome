@@ -1,0 +1,16 @@
+<header class="topbar" role="banner">
+  <div class="brand" (click)="openDashboard.emit()" title="Accueil">
+    <div class="logo" aria-hidden="true"></div>
+    <div class="brand-name">{{ brandName }}</div>
+  </div>
+
+
+  <nav class="topnav" aria-label="Navigation principale">
+  </nav>
+
+
+  <div class="userbox">
+    <span class="hello muted">Bonjour Nicolas</span>
+    <div class="avatar" [attr.aria-label]="'Utilisateur ' + userInitials">{{ userInitials }}</div>
+  </div>
+</header>

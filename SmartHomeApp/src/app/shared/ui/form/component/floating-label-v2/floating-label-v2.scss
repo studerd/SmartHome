@@ -1,0 +1,78 @@
+/* —— palette (reprend tes tokens si présents) —— */
+.field{
+  --bg: var(--theme-color-bg, #070a0f);
+  --surface: var(--theme-color-surface, #141e2b);
+  --text: var(--theme-color-neutral-txt, #e6edf6);
+  --muted: var(--theme-color-neutral-txt-secondary, #9fb3c8);
+  --border: var(--theme-color-border, #273549);
+  --gold: #f7c97d;
+  --pink: #ff7ab8;
+
+  position: relative;
+  font: 500 16px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+/* input de base */
+.field > input{
+  width: 100%;
+  padding: 20px 14px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: box-shadow .25s, border-color .25s, background .25s;
+  caret-color: var(--pink);
+}
+
+/* halo/contour gradient à focus */
+.field:focus-within > input{
+  border-color: transparent; /* on passe par un double background pour le gradient */
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(135deg, var(--pink), var(--gold)) border-box;
+  box-shadow: 0 10px 28px rgba(247,201,125,.18);
+}
+
+/* faux placeholder (animable) */
+.field > .ph{
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  transition: transform .28s cubic-bezier(.2,.7,.3,1), opacity .22s;
+  white-space: nowrap;
+}
+
+/* label flottant (apparait au focus/filled) */
+.field > label{
+  position: absolute;
+  left: 10px;
+  top: 0;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: .75rem;
+  letter-spacing: .02em;
+  transform-origin: left top;
+  transform: translateY(22px) scale(.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .28s cubic-bezier(.2,.7,.3,1), opacity .2s;
+  box-shadow: 0 0 0 1px var(--bg); /* petit cache propre sur la bordure */
+}
+
+/* états : focus OU quand l’input n’est plus “placeholder-shown” (donc a une value) */
+.field:focus-within > .ph,
+.field > input:not(:placeholder-shown) ~ .ph{
+  transform: translateY(-22px);
+  opacity: 0;
+}
+.field:focus-within > label,
+.field > input:not(:placeholder-shown) + label{
+  transform: translateY(-12px) scale(.9);
+  opacity: 1;
+}

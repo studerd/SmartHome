@@ -2,23 +2,58 @@
 @use "assets/font/font.css";
 @use "assets/css/reset.css";
 @use "assets/css/flex.css";
-:root{
-  /* Fond et neutres */
-  --theme-color-bg: #f8fafc;              /* gris bleuté très clair (fond principal) */
-  --theme-color-surface: #ffffff;         /* cartes/panneaux */
-  --theme-color-neutral-txt: #1e293b;     /* texte principal anthracite */
-  --theme-color-neutral-txt-secondary: #64748b; /* texte secondaire gris bleuté */
 
-  /* Accents high-tech */
-  --theme-color-accent: #06b6d4;          /* cyan lumineux (connectivité) */
-  --theme-color-accent-alt: #7c3aed;      /* violet techno */
+:root {
+  /* Fond & neutres (inchangés) */
+  --theme-color-bg: #0b0f14;
+  --theme-color-surface: #0f1720;
+  --theme-color-neutral-txt: #e6edf6;
+  --theme-color-border: #273549;
+  --surface-2: #273549;
+  --theme-color-neutral-txt-secondary: #9fb3c8;
 
-  /* États système */
-  --theme-color-success: #16a34a;         /* vert énergique */
-  --theme-color-error: #dc2626;           /* rouge alerte */
-  --theme-color-warning: #f59e0b;         /* orange vif */
-  --theme-color-info: #2563eb;            /* bleu fort */
+  /* Accents or "brand" */
+  --theme-color-accent: #f7c97d; /* gold satiné */
+  --theme-color-accent-alt: #ff7ab8; /* pink élégant */
+
+  /* États système (conservés pour la sémantique) */
+  --theme-color-success: #22e58a;
+  --theme-color-error: #ff5a76;
+  --theme-color-warning: #f7b955;
+  --theme-color-info: #60a5fa;
+
+  /* Extras */
+  --theme-color-border: #202733;
+  --theme-color-divider: rgba(255, 255, 255, .06);
+  --theme-color-muted: rgba(255, 255, 255, .64);
+
+  /* Alphas & RGB pour effets */
+  --accent-rgb: 247, 201, 125; /* gold */
+  --accent-alt-rgb: 255, 122, 184; /* pink */
+  --surface-rgb: 15, 23, 32;
+  --white-rgb: 230, 237, 246;
+
+  /* Glows / focus rings (dorés) */
+  --focus-ring: 0 0 0 3px rgba(var(--accent-rgb), .35);
+  --glow-soft: 0 0 24px rgba(var(--accent-rgb), .22);
+  --glow-alt-soft: 0 0 24px rgba(var(--accent-alt-rgb), .18);
+
+  /* Fonds translucides (badges/toasts) */
+  --success-bg: rgba(34, 229, 138, .12);
+  --error-bg: rgba(255, 90, 118, .12);
+  --warning-bg: rgba(247, 185, 85, .14);
+  --info-bg: rgba(96, 165, 250, .14);
+
+  /* Surfaces (échelons) */
+  --surface-1: #111a27;
+  --surface-2: #131e2e;
+  --surface-3: #172335;
+
+  /* Gradients d’accent (pink → gold) */
+  --gradient-accent: linear-gradient(135deg, #ff7ab8 0%, #f7c97d 100%);
+  --button-primary:#568EA6
 }
+
 body {
   /* Couleurs & texte */
   background-color: var(--theme-color-bg);
@@ -39,7 +74,7 @@ body {
 
   /* Flex layout */
   display: flex;
-  flex-direction: row;        /* change en column si tu veux un layout vertical */
+  flex-direction: row; /* change en column si tu veux un layout vertical */
   justify-content: stretch;
   align-items: stretch;
 
@@ -50,7 +85,44 @@ body {
 
 /* Tous les enfants du body prennent l’espace dispo */
 body > * {
-  flex: 1 1 auto;   /* chaque enfant grandit/rapetisse pour remplir */
-  min-width: 0;     /* évite débordements horizontaux */
-  min-height: 0;    /* évite débordements verticaux */
+  flex: 1 1 auto; /* chaque enfant grandit/rapetisse pour remplir */
+  min-width: 0; /* évite débordements horizontaux */
+  min-height: 0; /* évite débordements verticaux */
+  font-size: 1.2rem;
+}
+
+.panel {
+  position:relative;
+  background: var(--theme-color-surface);
+  border-radius: 6px;
+  padding: 16px;
+  color: var(--theme-color-neutral-txt)
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--theme-color-neutral-txt)
+}
+
+h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--theme-color-neutral-txt-secondary)
+}
+
+.actions{
+  position: absolute;
+  top:0;right:0;display: flex;
+  flex-direction: row;
+  .action-item{
+    width:50px;height:50px;
+    @extend .fc-cc;
+    color:var(--theme-color-neutral-txt-secondary);
+    font-size:22px;
+  }
 }

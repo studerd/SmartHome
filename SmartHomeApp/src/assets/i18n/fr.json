@@ -1,5 +1,10 @@
 {
   "api.error.payload.is-not-valid": "Les données envoyées sont invalides",
   "api.error.user-not-found": "L'utilisateur n'a pas été trouvé",
-  "account-feature.page.sign-in.title": "Veuillez entrer le code pin"
+  "account-feature.page.sign-in.title": "Veuillez entrer le code pin",
+  "account-feature.component.face-recognition.title": "Donnée biomérique",
+  "account-feature.component.face-recognition.add": "Cliquer sur l'icone pour charger de nouvelle donnée biométrique",
+  "account-feature.component.face-recognition.loading-data": "Continuez à bouger",
+  "account-feature.component.face-recognition.loading": "Système de biométrique en cours de chargement",
+  "account-feature.component.face-recognition.loading-explaination": "Le système doit calculé votre emprunte biométrique, pour ce faire, vous devrez faire tourner votre tête jusqu'à ce que la jauge soit compl$etée"
 }

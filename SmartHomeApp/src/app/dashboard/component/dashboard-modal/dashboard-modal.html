@@ -1,0 +1,40 @@
+<div class="modal-backdrop" [class.modal-open]="open" (click)="onBackdrop()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dashTitle" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="dashTitle">Menu Dashboard</h3>
+      <button class="modal-close" type="button" (click)="close.emit()">Fermer</button>
+    </div>
+    <div class="modal-grid">
+      <button class="modal-item" type="button" (click)="pick('lights')">
+        <div class="icon-lg">◉</div>
+        <h4>Lumières</h4>
+        <p>Pièces, intensité, scènes</p>
+      </button>
+      <button class="modal-item" type="button" (click)="pick('climate')">
+        <div class="icon-lg">⌂</div>
+        <h4>Clim/Chauffage</h4>
+        <p>Thermostats, FCUs, modes</p>
+      </button>
+      <button class="modal-item" type="button" (click)="pick('security')">
+        <div class="icon-lg">⛨</div>
+        <h4>Sécurité</h4>
+        <p>Portail, caméras, alarmes</p>
+      </button>
+      <button class="modal-item" type="button" (click)="pick('pool')">
+        <div class="icon-lg">≈</div>
+        <h4>Piscine</h4>
+        <p>Pompe, PAC, éclairage</p>
+      </button>
+      <button class="modal-item" type="button" (click)="pick('energy')">
+        <div class="icon-lg">⚡</div>
+        <h4>Énergie</h4>
+        <p>PV, charge VE, suivi</p>
+      </button>
+      <button class="modal-item" type="button" (click)="pick('media')">
+        <div class="icon-lg">▶</div>
+        <h4>Média</h4>
+        <p>Spotify, TV, multiroom</p>
+      </button>
+    </div>
+  </div>
+</div>

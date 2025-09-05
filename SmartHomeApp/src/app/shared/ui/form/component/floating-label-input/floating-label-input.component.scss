@@ -18,20 +18,19 @@
 }
 
 .fixed-label {
-  font-size: 12px;
-  height: 14px;
+  font-size: 14px;
+  height: 30px;
 }
 
 .floating-input {
   width: 100%;
   padding: 10px;
   padding-top: 24px;
-  height: 56px;
+  height: 80px;
   background: transparent !important;
-  color: var(--theme-pink);
-  border: 1px solid var(--theme-dark);
   box-sizing: border-box;
   text-align: left;
+  border:1px solid var(--theme-color-neutral-txt-secondary);
 
   &:focus {
     outline: none;

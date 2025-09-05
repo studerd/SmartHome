@@ -1,1 +1,15 @@
-<router-outlet></router-outlet>
+<app-dashboard-header (openDashboard)="openModal()"/>
+<main class="container">
+  <app-dashboard-side class="sidebar"></app-dashboard-side>
+  <section class="main">
+    <router-outlet></router-outlet></section>
+  <app-dashboard-quick-view-and-action class="sidebar"></app-dashboard-quick-view-and-action>
+</main>
+
+
+<!-- Modal -->
+<app-dashboard-modal
+  [open]="isModalOpen()"
+  (close)="closeModal()"
+  (action)="onAction($event)"
+/>

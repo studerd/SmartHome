@@ -1,0 +1,23 @@
+.input{
+  display: flex;
+  flex-direction: column;
+  gap:8px;
+  input{
+    background:var(--surface-2);
+    border:1px solid var(--surface-2);
+    color:var(--theme-color-neutral-txt-secondary);
+    border-radius:6px;
+    height:50px;
+    padding:10px;
+    outline: none;
+    &::placeholder{
+
+      color:var(--theme-color-neutral-txt-secondary);
+    }
+  }
+}
+.form{
+  display: flex;
+  flex-direction: column;
+  gap:1rem;
+}

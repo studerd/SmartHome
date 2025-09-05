@@ -1,2 +1,16 @@
-<p>account-detail-page works!</p>
-<app-face-recognition></app-face-recognition>
+
+<div class="panel">
+  <div class="actions">
+    <div class="action-item">
+      <i class="fa-light fa-floppy-disk"></i>
+    </div>
+    <div class="action-item">
+      <i class="fa-light fa-close"></i>
+    </div>
+  </div>
+  <h2>Compte de Nicolas</h2>
+  <div class="content">
+    <app-account-detail-data-manager></app-account-detail-data-manager>
+    <app-face-recognition (biometricData)="setBiometricData($event)"></app-face-recognition>
+  </div>
+</div>

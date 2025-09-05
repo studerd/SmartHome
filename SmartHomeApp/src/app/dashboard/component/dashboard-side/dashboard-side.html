@@ -1,0 +1,28 @@
+<aside class="left">
+  <section class="panel calendar" aria-label="Calendrier">
+    <div class="cal-header">
+      <div class="cal-title">{{ monthTitle() }}</div>
+      <div class="cal-nav">
+        <button type="button" class="btn-ghost" (click)="prevMonth()" aria-label="Mois précédent">◀</button>
+        <button type="button" class="btn-ghost" (click)="nextMonth()" aria-label="Mois suivant">▶</button>
+      </div>
+    </div>
+    <div class="cal-grid">
+      @for (d of weekDays; track $index) {
+        <div class="cal-dow">{{ d }}</div>
+      }
+      @for (day of days(); track $index) {
+        <button type="button" class="cal-day" [class.is-today]="day.isToday" [class.is-muted]="!day.isCurrentMonth"
+                [attr.aria-label]="day.date | date:'fullDate'">{{ day.label }}
+        </button>
+
+      }
+    </div>
+  </section>
+
+
+  <section class="panel spotify" aria-label="Spotify">
+    <h3>Spotify</h3>
+
+  </section>
+</aside>

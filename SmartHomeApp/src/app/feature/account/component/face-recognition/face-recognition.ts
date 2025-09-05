@@ -1,24 +1,39 @@
-import {Component, effect, ElementRef, OnDestroy, OnInit, signal, ViewChild, WritableSignal} from '@angular/core';
+import {
+  Component,
+  effect,
+  ElementRef,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  signal,
+  ViewChild,
+  WritableSignal
+} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import * as faceapi from '@vladmandic/face-api';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-wasm';
-import {FaceDirection, FaceEmotion, FaceEnrollmentPayload, FaceRecognitionContext, FaceSnap} from '../../data';
+import {EnrollmentBuildResult, FaceDirection, FaceEmotion, FaceRecognitionContext, FaceSnap} from '../../data';
 import {isNil} from 'lodash';
 import {FaceRecognitionUtil} from '../../util';
+import {TranslatePipe} from '@ngx-translate/core';
 
 
 @Component({
   selector: 'app-face-recognition',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './face-recognition.html',
   styleUrls: ['./face-recognition.scss'],
 })
 export class FaceRecognition implements OnInit, OnDestroy {
+  @Output() biometricData: EventEmitter<EnrollmentBuildResult> = new EventEmitter<EnrollmentBuildResult>();
   @ViewChild('video', {static: true}) videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas', {static: true}) canvasRef!: ElementRef<HTMLCanvasElement>;
+  loading$: WritableSignal<boolean> = signal(false);
+  showBioMetricForm$: WritableSignal<boolean> = signal(false);
   context$: WritableSignal<FaceRecognitionContext> = signal({
     yaw: 0, roll: 0, pitch: 0, pitchNeutralValue: 0, age: 0, gender: 'unknown', expression: FaceEmotion.NEUTRAL
   })
@@ -33,11 +48,6 @@ export class FaceRecognition implements OnInit, OnDestroy {
   });
   // modèles
   private cal: number[] = [];
-  readonly enroll_target = 8;
-  private readonly min_score = 0.5;     // score détection mini
-  private readonly min_face_ratio = 0.28; // visage >= 28% du côté min
-  private readonly max_abs_yaw = 20;    // |yaw| ≤ 20° recommandé
-  private readonly max_abs_pitch = 15;  // |pitch| ≤ 15° recommandé
   private readonly modelPath = 'assets/face-detector-model/';
   private readonly minScore = 0.2;
   private readonly maxResults = 5;
@@ -50,11 +60,17 @@ export class FaceRecognition implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.start();
+    this.showForm();
   }
 
   ngOnDestroy(): void {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+  }
+
+  async showForm() {
+    this.showBioMetricForm$.set(true);
+    await this.detectVideo()
   }
 
   // ---------------- Main (init TFJS + modèles + caméra) ----------------
@@ -78,7 +94,6 @@ export class FaceRecognition implements OnInit, OnDestroy {
 
     await this.setupFaceAPI();
     await this.setupCamera();
-    await this.detectVideo();
   }
 
   // ---------------- Modèles ----------------
@@ -347,10 +362,8 @@ export class FaceRecognition implements OnInit, OnDestroy {
     this.setRingStyle(list);
     this.snapList$.set(list);
     if (list.length === 9) {
-      console.log('on a tous!');
-      console.log(list);
-      const res = FaceRecognitionUtil.buildEnrollment(list.map(i => i.value) /*, qualities? */);
-      console.log(res);
+      const bioData: EnrollmentBuildResult = FaceRecognitionUtil.buildEnrollment(list.map(i => i.value) /*, qualities? */);
+      this.biometricData.emit(bioData);
       this.stopAndCleanup().then();
     }
   }
@@ -360,28 +373,28 @@ export class FaceRecognition implements OnInit, OnDestroy {
     for (let item of list) {
       switch (item.position) {
         case FaceDirection.TOP:
-          style += '--c0:#22c55e;';
+          style += '--c0:#f7c97d;';
           break;
         case FaceDirection.TOP_RIGHT:
-          style += '--c1:#22c55e;';
+          style += '--c1:#f7c97d;';
           break;
         case FaceDirection.RIGHT:
-          style += '--c2:#22c55e;';
+          style += '--c2:#f7c97d;';
           break;
         case FaceDirection.BOTTOM_RIGHT:
-          style += '--c3:#22c55e;';
+          style += '--c3:#f7c97d;';
           break;
         case FaceDirection.BOTTOM:
-          style += '--c4:#22c55e;';
+          style += '--c4:#f7c97d;';
           break;
         case FaceDirection.BOTTOM_LEFT:
-          style += '--c5:#22c55e;';
+          style += '--c5:#f7c97d;';
           break;
         case FaceDirection.LEFT:
-          style += '--c6:#22c55e;';
+          style += '--c6:#f7c97d;';
           break;
         case FaceDirection.TOP_LEFT:
-          style += '--c7:#22c55e;';
+          style += '--c7:#f7c97d;';
           break;
       }
     }

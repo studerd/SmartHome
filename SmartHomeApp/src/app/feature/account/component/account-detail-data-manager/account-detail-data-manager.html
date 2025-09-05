@@ -1,0 +1,17 @@
+<div class="title">
+  <h3>Fiche</h3>
+  <div class="form">
+    <div class="input">
+      <label>Identifiant</label>
+      <input type="text" [formControl]="username" placeholder="Entrer un identifiant sans espace">
+    </div>
+    <div class="input">
+      <label>Mot de passe / code pin</label>
+      <input type="text" [formControl]="password" placeholder="Entrer un code pin / mot de passe de 6 caractères">
+    </div>
+    <div class="input">
+      <label>E-mail</label>
+      <input type="email" [formControl]="email" placeholder="Entrer une adresse mail valide">
+    </div>
+  </div>
+</div>

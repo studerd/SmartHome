@@ -1,0 +1,91 @@
+:host {
+  display: block
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 64px;
+  display: grid;
+  grid-template-columns:auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  cursor: pointer
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff7ab8 0%, #f7c97d 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .06) inset, 0 0 24px rgba(255, 122, 184, .2)
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center
+}
+
+.nav-item {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--theme-color-neutral-txt)
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, .04);
+  border-color: var(--theme-color-border)
+}
+
+.nav-item.active {
+  background: rgba(247, 201, 125, .14);
+  border-color: rgba(247, 201, 125, .35);
+  color: #0b0f14
+}
+
+.userbox {
+  display: flex;
+  align-items: center;
+  gap: 12px
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(120% 120% at 10% 10%, rgba(255, 122, 184, .9), rgba(247, 201, 125, .9));
+  color: #0b0f14;
+  font-weight: 800;
+  box-shadow: 0 0 24px rgba(247, 201, 125, .22);
+  border: 1px solid rgba(255, 255, 255, .25)
+}
+
+.hello {
+  font-size: 14px
+}
+
+.muted {
+  color: var(--theme-color-neutral-txt-secondary)
+}
+
+.icon {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 16px
+}
