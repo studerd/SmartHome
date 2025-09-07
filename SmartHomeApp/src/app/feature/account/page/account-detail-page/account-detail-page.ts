@@ -1,13 +1,12 @@
-import {Component} from '@angular/core';
-import {FaceRecognition} from '@guest';
+import {Component, inject} from '@angular/core';
 import {AccountDataPayload, EnrollmentBuildResult} from '../../data';
 import {AccountDetailDataManager} from '../../component';
 import {FaceRecognitionManager} from '@shared';
+import {AccountService} from '../../service/account.service';
 
 @Component({
   selector: 'app-account-detail-page',
   imports: [
-    FaceRecognition,
     AccountDetailDataManager,
     FaceRecognitionManager
   ],
@@ -17,9 +16,12 @@ import {FaceRecognitionManager} from '@shared';
 })
 export class AccountDetailPage {
   accountData: AccountDataPayload = {username: '', password: '', mail: ''}
-
-  setBiometricData(data: EnrollmentBuildResult) {
+  private readonly accountService:AccountService = inject(AccountService);
+  setBiometricData(data: Float32Array) {
     this.accountData.biometricData = data;
     console.log('mon accountData', this.accountData);
+  }
+  sendModification():void{
+
   }
 }

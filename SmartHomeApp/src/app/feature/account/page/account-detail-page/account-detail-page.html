@@ -1,8 +1,8 @@
 
 <div class="panel">
   <div class="actions">
-    <div class="action-item">
-      <i class="fa-light fa-floppy-disk"></i>
+    <div class="action-item" (click)="sendModification()">
+      <i class="fa-light fa-floppy-disk" ></i>
     </div>
     <div class="action-item">
       <i class="fa-light fa-close"></i>
@@ -14,7 +14,7 @@
       <app-account-detail-data-manager></app-account-detail-data-manager>
     </div>
     <div class="part">
-      <app-face-recognition-manager></app-face-recognition-manager></div>
+      <app-face-recognition-manager (embeddingFinalized)="setBiometricData($event)"></app-face-recognition-manager></div>
     <!--
     <app-face-recognition (biometricData)="setBiometricData($event)"></app-face-recognition>
     -->

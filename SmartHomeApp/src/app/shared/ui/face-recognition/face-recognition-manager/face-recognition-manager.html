@@ -1,1 +1,42 @@
-<p>face-recognition-manager works!</p>
+<div class="faceprint">
+  <h3>{{ 'account-feature.component.face-recognition.title' | translate }}</h3>
+  @if (dataIsOk$()) {
+    <div class="propose">
+      <i class="fa-light fa-user-dashed" ></i>
+      <span>Empreinte générée (512-D). Ex: [{{ embedding![0] | number:'1.3-3' }}, {{ embedding![1] | number:'1.3-3' }}, …]</span>
+    </div>
+  }@else {
+    @if(libs.status$() !== FaceRecognitionLibraryStatus.READY){
+    <div class="propose">
+      <i class="fa-light fa-user-dashed" (click)="onLoadLibs()"></i>
+      <span>{{ 'account-feature.component.face-recognition.add'| translate }}</span>
+    </div>
+  }
+  @if (libs.status$()===FaceRecognitionLibraryStatus.LOADING) {
+    <div class="propose">
+      <i class="fa-duotone fa-thin fa-user-viewfinder fa-fade"></i>
+      <span>{{ 'account-feature.component.face-recognition.loading'| translate }}</span>
+    </div>
+  }
+  <div class="face-recognizator">
+    <div class="camera">
+      <div class="viewport" [style.--zoom]="1.5">
+        <video #video class="video" playsinline autoplay muted></video>
+        <canvas #canvas class="canvas"></canvas>
+      </div>
+    </div>
+    <div class="load-data">
+      <div class="dashed fixed"><i class="fa-duotone fa-light fa-user-dashed"></i>
+      </div>
+      <div class="dashed" [style.bottom]=" ((progress$()*100) | number:'1.0-0')+'%'" >
+        <i class="fa-light fa-user-dashed"></i>
+      </div>
+      <div class="txt">
+        {{ (progress$()*100) | number:'1.0-0' }}%
+      </div>
+    </div>
+    <div class="txt">{{'account-feature.component.face-recognition.loading-explaination' | translate}}</div>
+  </div>
+
+  }
+</div>

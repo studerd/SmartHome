@@ -1,8 +1,7 @@
-import {EnrollmentBuildResult} from '../model';
-
 export interface AccountDataPayload {
+  id?: string;
   username: string;
   password: string;
   mail: string;
-  biometricData?: EnrollmentBuildResult
+  biometricData?: Float32Array
 }
