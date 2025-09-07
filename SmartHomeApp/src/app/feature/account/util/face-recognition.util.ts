@@ -191,4 +191,33 @@ export class FaceRecognitionUtil {
       gallery,
     };
   }
+  static drawCornerFrame(
+    ctx: CanvasRenderingContext2D,
+    x: number, y: number, w: number, h: number,
+    { len = Math.min(w, h) * 0.22, thick = 3, color = 'red' } = {}
+  ){
+    const l = Math.max(8, len);     // longueur des coins
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thick;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    // top-left
+    ctx.moveTo(x, y);         ctx.lineTo(x + l, y);
+    ctx.moveTo(x, y);         ctx.lineTo(x, y + l);
+    // top-right
+    ctx.moveTo(x + w, y);     ctx.lineTo(x + w - l, y);
+    ctx.moveTo(x + w, y);     ctx.lineTo(x + w, y + l);
+    // bottom-left
+    ctx.moveTo(x, y + h);     ctx.lineTo(x + l, y + h);
+    ctx.moveTo(x, y + h);     ctx.lineTo(x, y + h - l);
+    // bottom-right
+    ctx.moveTo(x + w, y + h); ctx.lineTo(x + w - l, y + h);
+    ctx.moveTo(x + w, y + h); ctx.lineTo(x + w, y + h - l);
+
+    ctx.stroke();
+    ctx.restore();
+  }
+
 }

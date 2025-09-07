@@ -2,10 +2,7 @@
   display: flex;
   flex-direction: row;
   gap: 2rem;
-  app-account-detail-data-manager{
-    flex:1;
-  }
-  app-face-recognition{
+ .part{
     flex:1;
   }
 }

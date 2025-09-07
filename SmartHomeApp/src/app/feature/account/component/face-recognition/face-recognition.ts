@@ -32,12 +32,13 @@ export class FaceRecognition implements OnInit, OnDestroy {
   @Output() biometricData: EventEmitter<EnrollmentBuildResult> = new EventEmitter<EnrollmentBuildResult>();
   @ViewChild('video', {static: true}) videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas', {static: true}) canvasRef!: ElementRef<HTMLCanvasElement>;
+  dataIsOk$: WritableSignal<boolean> = signal(false);
   loading$: WritableSignal<boolean> = signal(false);
   showBioMetricForm$: WritableSignal<boolean> = signal(false);
   context$: WritableSignal<FaceRecognitionContext> = signal({
     yaw: 0, roll: 0, pitch: 0, pitchNeutralValue: 0, age: 0, gender: 'unknown', expression: FaceEmotion.NEUTRAL
   })
-  styleRing$: WritableSignal<string> = signal('');
+  styleLoading$: WritableSignal<string> = signal('');
   snapList$: WritableSignal<FaceSnap[]> = signal([]);
   pitchNeutralValue$ = signal<number>(0);
   private posEffect = effect(() => {
@@ -52,7 +53,7 @@ export class FaceRecognition implements OnInit, OnDestroy {
   private readonly minScore = 0.2;
   private readonly maxResults = 5;
   private optionsSSDMobileNet!: faceapi.SsdMobilenetv1Options;
-
+  private nbPictures: number = 9;
   // runtime
   private stream?: MediaStream;
   private rafId?: number;
@@ -60,7 +61,7 @@ export class FaceRecognition implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.start();
-    this.showForm();
+    this.showForm().then();
   }
 
   ngOnDestroy(): void {
@@ -157,6 +158,17 @@ export class FaceRecognition implements OnInit, OnDestroy {
     });
   }
 
+  private fitCanvas(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const {width, height} = canvas.getBoundingClientRect();
+    if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // on dessine en px CSS
+    return dpr;
+  }
+
 
   // ---------------- Boucle détection ----------------
   private async detectVideo() {
@@ -190,8 +202,8 @@ export class FaceRecognition implements OnInit, OnDestroy {
     // Efface en TRANSPARENT (canvas créé avec alpha:true)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Bandeau FPS
-    ctx.fillStyle = 'rgba(0,0,0,.45)';
+    // Bandeau FPS (inchangé)
+    ctx.fillStyle = '#fff';
     ctx.fillRect(8, 8, 110, 28);
     ctx.fillStyle = '#fff';
     ctx.font = '13px system-ui, sans-serif';
@@ -200,19 +212,43 @@ export class FaceRecognition implements OnInit, OnDestroy {
 
       const det = person?.detection as faceapi.FaceDetection | undefined;
       const lm = person?.landmarks as faceapi.FaceLandmarks68 | undefined;
+      const PAD = 0.16;                 // marge autour de la box
+      const FILL = '#e6edf6';           // fond
+      const FILL_ALPHA = 0.05;          // opacité
+      const FRAME_COLOR = '#f7c97d';        // couleur des coins
+      const FRAME_THICK = 6;            // épaisseur des coins
+      const CORNER_LEN_PCT = 0.22;      // longueur des coins (en % de min(w,h))
       if (!det || !lm) continue;
 
       const box = det.box as faceapi.Box;
-      const scorePct = Math.round(((det.score ?? 0) * 1000)) / 10; // ex: 97.3%
 
-      // 1) Cadre
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = 'deepskyblue';
-      ctx.strokeRect(box.x, box.y, box.width, box.height);
+      // Cadre "un peu plus grand" : on ajoute une marge
+      let x = box.x - box.width * PAD;
+      let y = box.y - box.height * PAD;
+      let w = box.width * (1 + 2 * PAD);
+      let h = box.height * (1 + 2 * PAD);
 
+      // Clamp dans le canvas (évite de dépasser)
+      x = Math.max(0, x);
+      y = Math.max(0, y);
+      w = Math.min(canvas.width - x, w);
+      h = Math.min(canvas.height - y, h);
 
-      // 3) Expression (top) + Age/Gender (si présents) + Angles
+      // 1) Fond semi-opaque sous le cadre
+      ctx.save();
+      ctx.globalAlpha = FILL_ALPHA;
+      ctx.fillStyle = FILL;
+      ctx.fillRect(x, y, w, h);
+      ctx.restore();
 
+      // 2) Bordure du cadre
+      FaceRecognitionUtil.drawCornerFrame(ctx, x, y, w, h, {
+        len: Math.min(w, h) * CORNER_LEN_PCT,
+        thick: FRAME_THICK,
+        color: FRAME_COLOR
+      });
+
+      // 3) Expression + âge/genre + angles (inchangé)
       const {roll, pitch, yaw} = FaceRecognitionUtil.estimateAngles(lm);
       if (person === data[0]) {
         const exp = (person?.expressions ?? {}) as Record<string, number>;
@@ -220,19 +256,16 @@ export class FaceRecognition implements OnInit, OnDestroy {
         const topExpr = entries.length ? entries.sort((a, b) => b[1] - a[1])[0] : null;
         this.context$.set({
           ...this.context$(),
-          yaw,
-          roll,
+          yaw, roll, pitch,
           gender: person.gender,
           age: Math.floor(person.age),
-          pitch,
-          expression: topExpr ? topExpr[0].toUpperCase() as FaceEmotion : FaceEmotion.NEUTRAL
-        })
-
+          expression: topExpr ? (topExpr[0].toUpperCase() as FaceEmotion) : FaceEmotion.NEUTRAL
+        });
       }
 
-      // 4) Landmarks (68 points)
+      // 4) Landmarks (68 points) — inchangé
       ctx.globalAlpha = 0.9;
-      ctx.fillStyle = 'deepskyblue';
+      ctx.fillStyle = '#f7c97d';
       const pts: faceapi.Point[] = lm.positions ?? [];
       for (let i = 0; i < pts.length; i++) {
         ctx.beginPath();
@@ -310,6 +343,7 @@ export class FaceRecognition implements OnInit, OnDestroy {
       } catch {
       }
     } finally {
+      this.dataIsOk$.set(true);
       if (reason) console.log('[stopAndCleanup]', reason);
     }
   }
@@ -361,7 +395,7 @@ export class FaceRecognition implements OnInit, OnDestroy {
     }
     this.setRingStyle(list);
     this.snapList$.set(list);
-    if (list.length === 9) {
+    if (list.length === this.nbPictures) {
       const bioData: EnrollmentBuildResult = FaceRecognitionUtil.buildEnrollment(list.map(i => i.value) /*, qualities? */);
       this.biometricData.emit(bioData);
       this.stopAndCleanup().then();
@@ -369,35 +403,6 @@ export class FaceRecognition implements OnInit, OnDestroy {
   }
 
   private setRingStyle(list: FaceSnap[]): void {
-    let style: string = '';
-    for (let item of list) {
-      switch (item.position) {
-        case FaceDirection.TOP:
-          style += '--c0:#f7c97d;';
-          break;
-        case FaceDirection.TOP_RIGHT:
-          style += '--c1:#f7c97d;';
-          break;
-        case FaceDirection.RIGHT:
-          style += '--c2:#f7c97d;';
-          break;
-        case FaceDirection.BOTTOM_RIGHT:
-          style += '--c3:#f7c97d;';
-          break;
-        case FaceDirection.BOTTOM:
-          style += '--c4:#f7c97d;';
-          break;
-        case FaceDirection.BOTTOM_LEFT:
-          style += '--c5:#f7c97d;';
-          break;
-        case FaceDirection.LEFT:
-          style += '--c6:#f7c97d;';
-          break;
-        case FaceDirection.TOP_LEFT:
-          style += '--c7:#f7c97d;';
-          break;
-      }
-    }
-    this.styleRing$.set(style);
+    this.styleLoading$.set(`bottom:${100 / this.nbPictures * list.length}%`);
   }
 }

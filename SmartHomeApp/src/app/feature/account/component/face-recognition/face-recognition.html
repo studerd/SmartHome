@@ -1,6 +1,11 @@
 <div class="faceprint">
   <h3>{{ 'account-feature.component.face-recognition.title' | translate }}</h3>
-  @if (!showBioMetricForm$()) {
+  @if (dataIsOk$()) {
+    <div class="propose">
+      <i class="fa-light fa-user-dashed" (click)="showForm()"></i>
+      <span>{{ 'account-feature.component.face-recognition.add'| translate }}</span>
+    </div>
+  }@else if (!showBioMetricForm$()) {
     <div class="propose">
       <i class="fa-light fa-user-dashed" (click)="showForm()"></i>
       <span>{{ 'account-feature.component.face-recognition.add'| translate }}</span>
@@ -14,16 +19,23 @@
     </div>
   }
   <div class="face-recognizator">
-    <div class="viewport mirror" [style.--zoom]="1.35">
-      <video #video class="video" playsinline autoplay muted></video>
-      <canvas #canvas class="canvas"></canvas>
+    <div class="camera">
+      <div class="viewport" [style.--zoom]="1.8">
+        <video #video class="video" playsinline autoplay muted></video>
+        <canvas #canvas class="canvas"></canvas>
+      </div>
     </div>
+    <div class="load-data">
+      <div class="dashed fixed"><i class="fa-duotone fa-light fa-user-dashed"></i>
+      </div>
+      <div class="dashed" [attr.style]="styleLoading$()">
+        <i class="fa-light fa-user-dashed"></i>
+      </div>
+      <div class="txt">
+        {{ 'account-feature.component.face-recognition.loading-data' | translate }}
+      </div>
+    </div>
+<div class="txt">{{'account-feature.component.face-recognition.loading-explaination' | translate}}</div>
   </div>
-  <div class="load-data">
-    <div class="dashed">
-      <i class="fa-light fa-user-dashed"></i>
-    </div>
-    <div class="dashed-fix"><i class="fa-duotone fa-light fa-user-dashed"></i>
-    </div>
-  </div>
+
 </div>

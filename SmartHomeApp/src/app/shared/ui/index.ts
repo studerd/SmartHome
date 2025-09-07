@@ -6,3 +6,4 @@ export * from './card';
 export * from './menu';
 export * from './modal';
 export * from './toast';
+export * from './face-recognition';
