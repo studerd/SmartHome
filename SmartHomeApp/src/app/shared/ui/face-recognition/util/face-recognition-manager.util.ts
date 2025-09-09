@@ -1,3 +1,5 @@
+import {VideoFrameScheduler} from '../data';
+
 export class FaceRecognitionManagerUtil {
   static mapToViewport(
     p: { x: number, y: number },
@@ -16,5 +18,24 @@ export class FaceRecognitionManagerUtil {
     const x = dx + (p.x * vw) * scale;
     const y = dy + (p.y * vh) * scale;
     return {x, y};
+  }
+
+  static makeVideoFrameScheduler(video: HTMLVideoElement): VideoFrameScheduler {
+    const hasRVFC =
+      typeof video.requestVideoFrameCallback === 'function' &&
+      typeof video.cancelVideoFrameCallback === 'function';
+
+    if (hasRVFC) {
+      return {
+        mode: 'rvfc',
+        schedule: (cb) => video.requestVideoFrameCallback!(cb),
+        cancel: (id) => video.cancelVideoFrameCallback!(id),
+      };
+    }
+    return {
+      mode: 'raf',
+      schedule: (cb) => requestAnimationFrame(cb as any),
+      cancel: (id) => cancelAnimationFrame(id),
+    };
   }
 }

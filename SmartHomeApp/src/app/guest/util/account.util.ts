@@ -1,6 +1,7 @@
-import {Account, AccountDataPayload, AccountDto} from '../data';
+import {Account, AccountDto} from '../data';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {BiometricDataUtil} from '../../../shared/ui/face-recognition/util/biometric-data.util';
+import {AccountDataPayload} from '../../feature/account/data';
+import {BiometricDataUtil} from '@shared';
 
 
 export class AccountUtil {

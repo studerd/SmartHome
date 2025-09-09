@@ -1,11 +1,21 @@
 import {
-  Component, ElementRef, ViewChild, inject,
-  signal, computed, NgZone, OnDestroy, EventEmitter, Output
+  Component,
+  computed,
+  ElementRef,
+  EventEmitter,
+  inject,
+  NgZone,
+  OnDestroy,
+  Output,
+  signal,
+  ViewChild
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FaceRecognitionService} from '../../service/face-recognition.service';
 import {FaceRecognitionLibraryStatus as Status} from '../../data/enum';
 import {TranslatePipe} from '@ngx-translate/core';
+import {VideoFrameScheduler} from '../../data';
+import {FaceRecognitionManagerUtil} from '../../util';
 
 type LmPt = { x: number; y: number };
 
@@ -26,7 +36,7 @@ export class FaceRecognitionSignIn implements OnDestroy {
   @ViewChild('video', {static: false}) videoRef?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas', {static: false}) canvasRef?: ElementRef<HTMLCanvasElement>;
 
-  @Output() setBiometricData = new EventEmitter<Float32Array>();
+  @Output() setBiometricData = new EventEmitter<Float32Array<any>>();
 
   // UI
   splashUp$ = signal(false);
@@ -42,18 +52,14 @@ export class FaceRecognitionSignIn implements OnDestroy {
   private targetFrames = 16;
   private margin = 0.30;
   private embedBusy = false;
-  private useRVFC = 'requestVideoFrameCallback'
-  in
-  HTMLVideoElement
-.
-  prototype;
-  private onFrameId: number | null = null;
-  private sumEmb: Float32Array | null = null;
+  private sumEmb: Float32Array<any> | null = null;
   private count = 0;
   private lastLm: LmPt[] | null = null;
   private lastLmTs = 0;
   private LOST_TTL = 300;
   private SMOOTH_W = 0.5;
+  private scheduler!: VideoFrameScheduler;
+  private frameId: number | null = null;
 
   // -------- Splash → Auto start --------
   async onSplashClick() {
@@ -103,7 +109,7 @@ export class FaceRecognitionSignIn implements OnDestroy {
     if (v) {
       (v.srcObject as MediaStream | null)?.getTracks().forEach(t => t.stop());
       v.pause();
-      v.srcObject = null;
+      //v.srcObject = null;
     }
 
     this.camReady$.set(false);
@@ -127,17 +133,10 @@ export class FaceRecognitionSignIn implements OnDestroy {
     const canvas = this.canvasRef!.nativeElement;
     const ctx = canvas.getContext('2d', {alpha: true})!;
 
-    const fitCover = (vw: number, vh: number, cw: number, ch: number) => {
-      const s = Math.max(cw / vw, ch / vh);
-      const dw = vw * s, dh = vh * s;
-      return {s, dx: (cw - dw) / 2, dy: (ch - dh) / 2, dw, dh};
-    };
+    this.scheduler = FaceRecognitionManagerUtil.makeVideoFrameScheduler(video)
 
     const step = (now: number) => {
-      this.onFrameId = this.useRVFC
-        // @ts-ignore
-        ? video.requestVideoFrameCallback(step)
-        : requestAnimationFrame(step);
+      this.frameId = this.scheduler.schedule(step)
 
       // resize canvas
       const dpr = Math.max(1, devicePixelRatio || 1);
@@ -190,24 +189,14 @@ export class FaceRecognitionSignIn implements OnDestroy {
     };
 
     this.zone.runOutsideAngular(() => {
-      if (this.useRVFC) {
-        // @ts-ignore
-        this.onFrameId = video.requestVideoFrameCallback(step);
-      } else {
-        this.onFrameId = requestAnimationFrame(step);
-      }
+      this.frameId = this.scheduler.schedule(step);
     });
   }
 
   private stopLoop() {
-    if (this.onFrameId != null) {
-      if (this.useRVFC) {
-        // @ts-ignore
-        this.videoRef?.nativeElement.cancelVideoFrameCallback?.(this.onFrameId);
-      } else {
-        cancelAnimationFrame(this.onFrameId);
-      }
-      this.onFrameId = null;
+    if (this.frameId != null && this.scheduler) {
+      this.scheduler.cancel(this.frameId);
+      this.frameId = null;
     }
   }
 
@@ -251,7 +240,7 @@ export class FaceRecognitionSignIn implements OnDestroy {
     return this.cropCtx!.getImageData(0, 0, 112, 112);
   }
 
-  private async forwardEmbedding(img: ImageData): Promise<Float32Array> {
+  private async forwardEmbedding(img: ImageData): Promise<Float32Array<any>> {
     const ort = this.libs.ort as any;
     const session = this.libs.session as any;
     const H = 112, W = 112;
@@ -269,7 +258,7 @@ export class FaceRecognitionSignIn implements OnDestroy {
     const tensor = new ort.Tensor('float32', nchw, [1, 3, H, W]);
     const out = await session.run({[inputName]: tensor});
     const outName = session.outputNames[0];
-    const emb = out[outName].data as Float32Array;
+    const emb: Float32Array<any> = out[outName].data as Float32Array<any>;
 
     // L2-norm
     let n = 0;
@@ -280,14 +269,14 @@ export class FaceRecognitionSignIn implements OnDestroy {
     return norm;
   }
 
-  private accumulate(emb: Float32Array) {
-    if (!this.sumEmb) this.sumEmb = new Float32Array(emb.length);
+  private accumulate(emb: Float32Array<any>) {
+    if (!this.sumEmb) this.sumEmb = new Float32Array<any>(emb.length);
     for (let i = 0; i < emb.length; i++) this.sumEmb[i] += emb[i];
     this.count++;
   }
 
-  private finalize(): Float32Array {
-    const out = new Float32Array(this.sumEmb!.length);
+  private finalize(): Float32Array<any> {
+    const out = new Float32Array<any>(this.sumEmb!.length);
     for (let i = 0; i < out.length; i++) out[i] = this.sumEmb![i] / this.count;
     let n = 0;
     for (let i = 0; i < out.length; i++) n += out[i] * out[i];

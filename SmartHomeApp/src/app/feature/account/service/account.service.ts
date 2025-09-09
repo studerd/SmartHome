@@ -1,8 +1,8 @@
 import {inject, Injectable} from '@angular/core';
 import {ApiResponse, ApiService, ApiURI} from '@api';
-import {Account, AccountDataPayload} from '../data';
 import {map, Observable} from 'rxjs';
-import {AccountUtil} from '../util';
+import {Account, AccountUtil} from '@guest';
+import {AccountDataPayload} from '../data';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +12,8 @@ export class AccountService {
 
   public sendModification(accountDataPayload: AccountDataPayload): Observable<Account> {
     return this.api.post(ApiURI.ACCOUNT_SEND_MODIFICATION, accountDataPayload)
-      .pipe(map((response:ApiResponse)=>
-      response.result? AccountUtil.fromDto(response.data) : AccountUtil.getEmpty()
+      .pipe(map((response: ApiResponse) =>
+        response.result ? AccountUtil.fromDto(response.data) : AccountUtil.getEmpty()
       ))
   }
 }

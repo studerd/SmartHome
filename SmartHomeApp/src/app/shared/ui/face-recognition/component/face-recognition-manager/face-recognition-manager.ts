@@ -2,7 +2,9 @@ import {
   Component,
   computed,
   effect,
-  ElementRef, EventEmitter,
+  EffectRef,
+  ElementRef,
+  EventEmitter,
   inject,
   NgZone,
   OnDestroy,
@@ -12,14 +14,10 @@ import {
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FaceRecognitionService} from '../../service';
-import {FaceRecognitionLibraryStatus} from '../../data';
+import {BiometricData, FaceRecognitionLibraryStatus, LmPt, VideoFrameScheduler} from '../../data';
 import {TranslatePipe} from '@ngx-translate/core';
-import {delay} from 'rxjs';
-import {BiometricData} from '../../data';
 import {BiometricDataUtil} from '../../util';
 
-
-type LmPt = { x: number; y: number };
 
 @Component({
   selector: 'app-face-recognition-manager',
@@ -36,30 +34,23 @@ export class FaceRecognitionManager implements OnDestroy {
   @ViewChild('video', {static: false}) videoRef?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas', {static: false}) canvasRef?: ElementRef<HTMLCanvasElement>;
   @Output() embeddingFinalized = new EventEmitter<BiometricData>();
+
   // --- UI state
   dataIsOk$ = signal(false);
   camReady$ = signal(false);
   capturing$ = signal(false);
   progress$ = signal(0);          // 0..1
   error$ = signal<string | null>(null);
-  embedding: Float32Array | null = null; // résultat final 512-D
+  embedding: Float32Array<any> | null = null; // résultat final 512-D
+  private statusReadyEffect!: EffectRef;
 
-  camBtn = computed(() => this.camReady$() ? '⏹ Fermer la caméra' : '📷 Activer la caméra');
-  captureBtn = computed(() =>
-    this.capturing$() ? `⏳ Capture ${Math.round(this.progress$() * 100)}%` : '✨ Capturer l’empreinte'
-  );
-  private statusReadyEffect = effect(() => this.showCameraAndStartCapturing(this.libs.status$()));
   // --- Capture config
   private targetFrames = 20;  // nb de frames pour la moyenne
   private margin = 0.30;      // marge autour de la bbox (crop 112x112)
 
-  // --- Boucle vidéo (rVFC/RAF)
-  private useRVFC = 'requestVideoFrameCallback'
-  in
-  HTMLVideoElement
-.
-  prototype;
-  private onFrameId: number | null = null;
+  // --- Boucle vidéo via scheduler propre
+  private scheduler!: VideoFrameScheduler;
+  private frameId: number | null = null;
 
   // --- Smoothing & TTL (robuste rotations)
   private lastLm: LmPt[] | null = null;
@@ -76,11 +67,18 @@ export class FaceRecognitionManager implements OnDestroy {
   private meshEdges: [number, number][] = [];
 
   // --- Embedding accumulation
-  private sumEmb: Float32Array | null = null;
+  private sumEmb: Float32Array<any> | null = null;
   private count = 0;
   private embedBusy = false;
   private cropCanvas?: HTMLCanvasElement;
   private cropCtx?: CanvasRenderingContext2D;
+
+  constructor() {
+    // Crée l’effect dans un contexte d’injection (pas d’erreur EffectRef)
+    this.statusReadyEffect = effect(() => {
+      this.showCameraAndStartCapturing(this.libs.status$());
+    });
+  }
 
   // ------------------ Actions ------------------
 
@@ -120,15 +118,47 @@ export class FaceRecognitionManager implements OnDestroy {
 
   private async openCamera() {
     if (!this.videoRef || !this.canvasRef) return;
-    try {
-      const video = this.videoRef.nativeElement;
-      const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'user'}, audio: false});
-      video.srcObject = stream;
-      video.playsInline = true;
-      video.muted = true;
 
-      await this.whenCanPlay(video);
-      await video.play();
+    const video = this.videoRef.nativeElement;
+
+    // Attributs indispensables pour l’autoplay mobile/iOS
+    video.setAttribute('autoplay', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('muted', '');
+    video.muted = true;
+    video.playsInline = true;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {facingMode: 'user'},
+        audio: false
+      });
+      video.srcObject = stream;
+
+      // Attendre loadedmetadata
+      await new Promise<void>((res) => {
+        if (video.readyState >= 1) return res(); // HAVE_METADATA
+        const on = () => {
+          video.removeEventListener('loadedmetadata', on);
+          res();
+        };
+        video.addEventListener('loadedmetadata', on, {once: true});
+      });
+
+      // Attendre canplay (dimensions non nulles)
+      await new Promise<void>((res) => {
+        if (video.readyState >= 3) return res(); // HAVE_FUTURE_DATA
+        const on = () => {
+          video.removeEventListener('canplay', on);
+          res();
+        };
+        video.addEventListener('canplay', on, {once: true});
+      });
+
+      try {
+        await video.play();
+      } catch { /* ignore */
+      }
 
       this.camReady$.set(true);
       this.startLoop();
@@ -144,7 +174,8 @@ export class FaceRecognitionManager implements OnDestroy {
     if (v) {
       (v.srcObject as MediaStream | null)?.getTracks().forEach(t => t.stop());
       v.pause();
-      v.srcObject = null;
+      // v.srcObject = null;
+      // v.srcObject = null;
     }
     this.camReady$.set(false);
     this.capturing$.set(false);
@@ -169,6 +200,8 @@ export class FaceRecognitionManager implements OnDestroy {
     const canvas = this.canvasRef!.nativeElement;
     const ctx = canvas.getContext('2d', {alpha: true}) as CanvasRenderingContext2D;
 
+    this.scheduler = this.makeVideoFrameScheduler(video);
+
     const fitCover = (vw: number, vh: number, cw: number, ch: number) => {
       const scale = Math.max(cw / vw, ch / vh);
       const dw = vw * scale, dh = vh * scale;
@@ -189,15 +222,11 @@ export class FaceRecognitionManager implements OnDestroy {
     };
 
     const step = (now: number) => {
-      // schedule next
-      this.onFrameId = this.useRVFC
-        // @ts-ignore
-        ? video.requestVideoFrameCallback(step)
-        : requestAnimationFrame(step);
+      this.frameId = this.scheduler.schedule(step);
 
       if (!this.libs.landmarker) return;
 
-      // resize canvas (CSS px)
+      // Resize canvas (CSS px)
       const dpr = Math.max(1, window.devicePixelRatio || 1);
       const rect = canvas.getBoundingClientRect();
       if (canvas.width !== Math.round(rect.width * dpr) || canvas.height !== Math.round(rect.height * dpr)) {
@@ -207,7 +236,11 @@ export class FaceRecognitionManager implements OnDestroy {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, rect.width, rect.height);
 
-      // detect
+      // Si la vidéo n’est pas encore prête (dimensions nulles), on attend
+      const vw = video.videoWidth, vh = video.videoHeight;
+      if (!vw || !vh) return;
+
+      // Détection
       const res = this.libs.landmarker.detectForVideo(video, now);
       let lm = res?.faceLandmarks?.[0] as LmPt[] | undefined;
 
@@ -220,17 +253,17 @@ export class FaceRecognitionManager implements OnDestroy {
         lm = this.lastLm;
       } else {
         this.lastLm = null;
+        // Hint simple si pas de visage
         ctx.fillStyle = 'rgba(255,255,255,.85)';
         ctx.font = '14px system-ui, sans-serif';
         ctx.fillText('Alignez votre visage face à la caméra…', 12, 22);
         return;
       }
 
-      // mapping object-fit: cover
-      const vw = video.videoWidth, vh = video.videoHeight;
+      // Mapping object-fit: cover
       const fit = fitCover(vw, vh, rect.width, rect.height);
 
-      // viewport points + face size
+      // Points viewport + face size
       const ptsViewport: LmPt[] = [];
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       for (const p of lm!) {
@@ -243,10 +276,10 @@ export class FaceRecognitionManager implements OnDestroy {
       }
       const faceSize = Math.max(maxX - minX, maxY - minY);
 
-      // draw overlay (mesh + points)
+      // Overlay (mesh light)
       this.drawFaceOverlay(ctx, ptsViewport, faceSize);
 
-      // async embedding capture (non bloquant)
+      // Capture embedding async
       if (this.capturing$() && this.count < this.targetFrames && !this.embedBusy) {
         this.embedBusy = true;
         const crop = this.makeCrop112(video, lm!, this.margin);
@@ -265,46 +298,25 @@ export class FaceRecognitionManager implements OnDestroy {
 
     // start outside Angular (perf)
     this.zone.runOutsideAngular(() => {
-      if (this.useRVFC) {
-        // @ts-ignore
-        this.onFrameId = video.requestVideoFrameCallback(step);
-      } else {
-        this.onFrameId = requestAnimationFrame(step);
-      }
+      this.frameId = this.scheduler.schedule(step);
     });
   }
 
   private stopLoop() {
-    if (this.onFrameId != null) {
-      if (this.useRVFC) {
-        // @ts-ignore
-        this.videoRef?.nativeElement.cancelVideoFrameCallback?.(this.onFrameId);
-      } else {
-        cancelAnimationFrame(this.onFrameId);
-      }
-      this.onFrameId = null;
+    if (this.frameId != null && this.scheduler) {
+      this.scheduler.cancel(this.frameId);
+      this.frameId = null;
     }
   }
 
   // ------------------ Drawing ------------------
 
-  /** Dessine le maillage “lié” + les points (alignés au viewport). */
-  /** Dessine l'overlay selon le mode choisi. */
   private drawFaceOverlay(
     ctx: CanvasRenderingContext2D,
     ptsViewport: { x: number; y: number }[],
     faceSize: number
   ) {
-    // bbox utile à plusieurs modes
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const p of ptsViewport) {
-      if (p.x < minX) minX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y > maxY) maxY = p.y;
-    }
-    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-    const w = (maxX - minX), h = (maxY - minY);
+    if (!this.showMesh) return;
 
     if ((this.frameNo++ % this.recomputeEvery) === 0) {
       this.computeMeshEdges(ptsViewport, faceSize);
@@ -325,8 +337,6 @@ export class FaceRecognitionManager implements OnDestroy {
     }
   }
 
-
-  /** Construit des arêtes entre voisins proches (k-NN borné par une distance max). */
   private computeMeshEdges(points: LmPt[], faceSize: number) {
     const maxD2 = (faceSize * this.maxDistFactor) ** 2;
     const edges: [number, number][] = [];
@@ -353,7 +363,6 @@ export class FaceRecognitionManager implements OnDestroy {
 
   // ------------------ Preproc + inference (ArcFace) ------------------
 
-  /** Crop 112x112 autour du visage (bbox landmarks + marge). */
   private makeCrop112(video: HTMLVideoElement, lm: LmPt[], marginRatio: number): ImageData {
     if (!this.cropCanvas) {
       this.cropCanvas = document.createElement('canvas');
@@ -380,14 +389,13 @@ export class FaceRecognitionManager implements OnDestroy {
     return this.cropCtx!.getImageData(0, 0, 112, 112);
   }
 
-  /** Inference ORT → embedding 512-D L2-normalisé. */
-  private async forwardEmbedding(img: ImageData): Promise<Float32Array> {
+  private async forwardEmbedding(img: ImageData): Promise<Float32Array<any>> {
     const ort = this.libs.ort as any;
     const session = this.libs.session as any;
     const H = 112, W = 112;
 
     // NHWC u8 -> NCHW f32 [-1,1]
-    const nchw = new Float32Array(1 * 3 * H * W);
+    const nchw = new Float32Array<any>(1 * 3 * H * W);
     for (let y = 0; y < H; y++) {
       for (let x = 0; x < W; x++) {
         const i = (y * W + x) * 4;
@@ -402,25 +410,25 @@ export class FaceRecognitionManager implements OnDestroy {
     const tensor = new ort.Tensor('float32', nchw, [1, 3, H, W]);
     const out = await session.run({[inputName]: tensor});
     const outName = session.outputNames[0];
-    const emb = out[outName].data as Float32Array;
+    const emb = out[outName].data as Float32Array<any>;
 
     // L2-normalize
     let n = 0;
     for (let i = 0; i < emb.length; i++) n += emb[i] * emb[i];
     n = Math.sqrt(n) || 1;
-    const norm = new Float32Array(emb.length);
+    const norm = new Float32Array<any>(emb.length);
     for (let i = 0; i < emb.length; i++) norm[i] = emb[i] / n;
     return norm;
   }
 
-  private accumulate(emb: Float32Array) {
-    if (!this.sumEmb) this.sumEmb = new Float32Array(emb.length);
+  private accumulate(emb: Float32Array<any>) {
+    if (!this.sumEmb) this.sumEmb = new Float32Array<any>(emb.length);
     for (let i = 0; i < emb.length; i++) this.sumEmb[i] += emb[i];
     this.count++;
   }
 
-  private finalize(): Float32Array {
-    const out = new Float32Array(this.sumEmb!.length);
+  private finalize(): Float32Array<any> {
+    const out = new Float32Array<any>(this.sumEmb!.length);
     for (let i = 0; i < out.length; i++) out[i] = this.sumEmb![i] / this.count;
     let n = 0;
     for (let i = 0; i < out.length; i++) n += out[i] * out[i];
@@ -429,78 +437,39 @@ export class FaceRecognitionManager implements OnDestroy {
     return out;
   }
 
-  // ------------------ Cleanup ------------------
+  // ------------------ Helpers & cleanup ------------------
+
+  private makeVideoFrameScheduler(video: HTMLVideoElement): VideoFrameScheduler {
+    const hasRVFC =
+      typeof video.requestVideoFrameCallback === 'function' &&
+      typeof video.cancelVideoFrameCallback === 'function';
+
+    if (hasRVFC) {
+      return {
+        mode: 'rvfc',
+        schedule: (cb) => video.requestVideoFrameCallback!(cb),
+        cancel: (id) => video.cancelVideoFrameCallback!(id),
+      };
+    }
+    return {
+      mode: 'raf',
+      schedule: (cb) => requestAnimationFrame(cb as any),
+      cancel: (id) => cancelAnimationFrame(id),
+    };
+  }
+
+  private async showCameraAndStartCapturing(status: FaceRecognitionLibraryStatus): Promise<void> {
+    if (status !== FaceRecognitionLibraryStatus.READY || this.camReady$()) return;
+    await this.onToggleCamera();
+    await this.sleep(600); // petit délai pour stabiliser l’auto-expo
+    this.capturing$.set(true);
+  }
+
+  private sleep(ms: number) {
+    return new Promise(res => setTimeout(res, ms));
+  }
 
   ngOnDestroy() {
     this.closeCamera();
-  }
-
-  /** Convex hull (monotone chain) – renvoie la liste de points du pourtour. */
-  private convexHull(pts: { x: number; y: number }[]): { x: number; y: number }[] {
-    if (pts.length <= 3) return pts.slice();
-    const p = pts.slice().sort((a, b) => a.x === b.x ? a.y - b.y : a.x - b.x);
-    const cross = (o: any, a: any, b: any) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
-    const lower: any[] = [];
-    for (const pt of p) {
-      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], pt) <= 0) lower.pop();
-      lower.push(pt);
-    }
-    const upper: any[] = [];
-    for (let i = p.length - 1; i >= 0; i--) {
-      const pt = p[i];
-      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], pt) <= 0) upper.pop();
-      upper.push(pt);
-    }
-    upper.pop();
-    lower.pop();
-    return lower.concat(upper);
-  }
-
-  /** Ramer–Douglas–Peucker (simplifie un polygone fermé). */
-  private rdpSimplify(pts: { x: number; y: number }[], eps: number): { x: number; y: number }[] {
-    if (pts.length <= 3) return pts;
-    // ferme le polygone pour simplifier, puis rouvre
-    const closed = pts.concat([pts[0]]);
-    const simplified = this.rdp(closed, eps);
-    simplified.pop(); // retire le point dupliqué
-    return simplified;
-  }
-
-  private rdp(pts: { x: number; y: number }[], eps: number): { x: number; y: number }[] {
-    let dmax = 0, idx = 0;
-    const end = pts.length - 1;
-    const dist = (p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }) => {
-      const A = p.x - a.x, B = p.y - a.y, C = b.x - a.x, D = b.y - a.y;
-      const dot = A * C + B * D, lenSq = C * C + D * D;
-      let t = lenSq ? dot / lenSq : 0;
-      t = Math.max(0, Math.min(1, t));
-      const x = a.x + t * C, y = a.y + t * D;
-      const dx = p.x - x, dy = p.y - y;
-      return Math.hypot(dx, dy);
-    };
-    for (let i = 1; i < end; i++) {
-      const d = dist(pts[i], pts[0], pts[end]);
-      if (d > dmax) {
-        idx = i;
-        dmax = d;
-      }
-    }
-    if (dmax > eps) {
-      const rec1 = this.rdp(pts.slice(0, idx + 1), eps);
-      const rec2 = this.rdp(pts.slice(idx, end + 1), eps);
-      return rec1.slice(0, -1).concat(rec2);
-    } else {
-      return [pts[0], pts[end]];
-    }
-  }
-
-  private showCameraAndStartCapturing(status: FaceRecognitionLibraryStatus): void {
-    if (status === FaceRecognitionLibraryStatus.READY && !this.camReady$()) {
-      this.onToggleCamera().then(() => {
-          delay(6000);
-          this.capturing$.set(true);
-        }
-      )
-    }
   }
 }

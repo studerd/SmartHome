@@ -1,9 +1,10 @@
 import {Component, inject} from '@angular/core';
-import {Account, AccountDataPayload} from '../../data';
+import { AccountDataPayload} from '../../data';
 import {AccountDetailDataManager} from '../../component';
 import {BiometricData, BiometricDataUtil, FaceRecognitionManager, LocalFaceDbService} from '@shared';
 import {AccountService} from '../../service';
 import {EMPTY, from, of, switchMap} from 'rxjs';
+import {Account} from '@guest';
 
 @Component({
   selector: 'app-account-detail-page',

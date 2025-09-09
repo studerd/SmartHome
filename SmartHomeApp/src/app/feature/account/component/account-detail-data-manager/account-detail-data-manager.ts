@@ -1,8 +1,8 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {AccountDataPayload} from '../../data';
-import {AccountUtil} from '../../util';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {tap} from 'rxjs';
+import {AccountUtil} from '@guest';
 
 @Component({
   selector: 'app-account-detail-data-manager',
@@ -19,8 +19,12 @@ export class AccountDetailDataManager implements OnInit {
   @Output() formChanged = new EventEmitter<AccountDataPayload>();
 
   ngOnInit() {
-    this.form.valueChanges.pipe(tap((value: AccountDataPayload) =>
-      this.formChanged.emit(value))).subscribe();
+    this.form.valueChanges.pipe(tap((value: AccountDataPayload) => {
+        if (this.form.valid) {
+          this.formChanged.emit(value)
+        }
+      }
+    )).subscribe();
   }
 
   get username(): FormControl {

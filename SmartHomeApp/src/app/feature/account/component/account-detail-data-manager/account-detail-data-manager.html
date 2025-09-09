@@ -7,7 +7,7 @@
     </div>
     <div class="input">
       <label>Mot de passe / code pin</label>
-      <input type="text" [formControl]="password" placeholder="Entrer un code pin / mot de passe de 6 caractères">
+      <input type="password" [formControl]="password" placeholder="Entrer un code pin / mot de passe de 6 caractères" [attr.autocomplete]="'new-password'">
     </div>
     <div class="input">
       <label>E-mail</label>

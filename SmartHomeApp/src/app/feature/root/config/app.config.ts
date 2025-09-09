@@ -3,8 +3,9 @@ import {provideRouter, withComponentInputBinding} from '@angular/router';
 
 import {routes} from './app.routes';
 import {provideTranslateService} from '@ngx-translate/core';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {provideTranslateHttpLoader} from '@ngx-translate/http-loader';
+import {HttpInterceptor} from '@api';
 
 
 export const appConfig: ApplicationConfig = {
@@ -12,7 +13,9 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(),
+    provideHttpClient(
+      withInterceptors([HttpInterceptor])
+    ),
     provideTranslateService({
       loader: provideTranslateHttpLoader({
         prefix: 'assets/i18n/',

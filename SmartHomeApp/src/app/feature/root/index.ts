@@ -1,2 +1,3 @@
-export * from './app';
-export * from './app.config';
+export * from './component/app/app';
+export * from './config/app.config';
+export * from './data';

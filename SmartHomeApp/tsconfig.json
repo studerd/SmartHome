@@ -12,6 +12,9 @@
       "@guest": [
         "app/guest"
       ],
+      "@dashboard": [
+        "app/feature/dashboard"
+      ],
       "@shared": [
         "app/shared"
       ],
@@ -37,7 +40,8 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "lib": ["ES2021", "DOM", "DOM.Iterable"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

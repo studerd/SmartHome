@@ -11,6 +11,9 @@
   "account-feature.component.face-recognition.sign-in-loading": "Chargement des modules…",
   "account-feature.component.face-recognition.sign-in": "Connexion en cours…",
   "account-feature.component.face-recognition.sign-in-touch": "Touchez pour démarrer",
-  "account-feature.component.face-recognition.sign-in-analyze": "Analyse en cours…"
-
+  "account-feature.component.face-recognition.sign-in-analyze": "Analyse en cours…",
+  "app-initial-screen.title": "Bienvenue sur l'application SmartHome",
+  "app-initial-screen.description": "Vous devez configurer un super administrateur.",
+  "app-initial-screen.description-2":"Veuillez donc renseigner les différents champs ainsi que la partie biométrie.",
+  "app-initial-screen.btn": "Valider"
 }

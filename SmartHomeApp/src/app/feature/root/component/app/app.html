@@ -1,0 +1,5 @@
+@if (appService.config$().isInitialized) {
+  <router-outlet></router-outlet>
+} @else {
+  <app-app-config-manager (saveData)="createConfig($event)"></app-app-config-manager>
+}

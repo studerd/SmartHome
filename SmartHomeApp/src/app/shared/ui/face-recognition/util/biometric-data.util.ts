@@ -2,7 +2,7 @@ import {BiometricData, BiometricModel} from '../data';
 
 export class BiometricDataUtil {
   static makeBiometricData(
-    embedding: Float32Array | number[],
+    embedding: Float32Array<any> | number[],
     model: BiometricModel = 'arcface-w600k-mbf'
   ): BiometricData {
     return {
