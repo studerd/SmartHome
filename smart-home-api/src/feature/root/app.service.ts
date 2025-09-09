@@ -1,19 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppData } from './data';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Credential } from '@security';
 import { Repository } from 'typeorm';
-import { TokenService } from '../../security/service';
 import { isNil } from 'lodash';
 import { Builder } from 'builder-pattern';
 import { ulid } from 'ulid';
+import { SecurityService } from '../../security/service';
+import { CredentialDataPayload } from '../../security/data/payload/credential-data.payload';
+import { Credential } from '@security';
 
 @Injectable()
 export class AppService {
 
   private readonly logger = new Logger(AppService.name);
 
-  constructor(@InjectRepository(AppData) private readonly repository: Repository<AppData>) {
+  constructor(@InjectRepository(AppData) private readonly repository: Repository<AppData>, private readonly securityService: SecurityService) {
   }
 
   public async getInfo(): Promise<AppData | null> {
@@ -23,6 +24,13 @@ export class AppService {
       return await this.reqOne();
     }
     return appConfig;
+  }
+
+  public async create(payload: CredentialDataPayload) {
+    const credential: Credential = await this.securityService.sendModification(payload);
+    const appData: AppData = Builder<AppData>().app_id(ulid()).isInitialized(true).superAdmin(credential).build();
+    await this.repository.save(appData);
+    return await this.getInfo();
   }
 
   private async reqOne() {
