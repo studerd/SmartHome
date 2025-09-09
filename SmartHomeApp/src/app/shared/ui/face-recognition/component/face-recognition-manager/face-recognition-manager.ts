@@ -11,12 +11,12 @@ import {
   ViewChild
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FaceRecognitionService} from '../../service/face-recognition.service';
+import {FaceRecognitionService} from '../../service';
 import {FaceRecognitionLibraryStatus} from '../../data';
 import {TranslatePipe} from '@ngx-translate/core';
 import {delay} from 'rxjs';
 import {BiometricData} from '../../data';
-import {BiometricDataUtil} from '../../util/biometric-data.util';
+import {BiometricDataUtil} from '../../util';
 
 
 type LmPt = { x: number; y: number };

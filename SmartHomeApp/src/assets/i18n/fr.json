@@ -6,5 +6,11 @@
   "account-feature.component.face-recognition.add": "Cliquer sur l'icone pour charger de nouvelle donnée biométrique",
   "account-feature.component.face-recognition.loading-data": "Continuez à bouger",
   "account-feature.component.face-recognition.loading": "Système de biométrique en cours de chargement",
-  "account-feature.component.face-recognition.loading-explaination": "Le système va calculer votre empreinte biométrique. Tournez la tête jusqu’à ce que la jauge soit complétée."
+  "account-feature.component.face-recognition.loading-explaination": "Le système va calculer votre empreinte biométrique. Tournez la tête jusqu’à ce que la jauge soit complétée.",
+  "account-feature.component.face-recognition.sign-in-init": "Initialisation caméra…",
+  "account-feature.component.face-recognition.sign-in-loading": "Chargement des modules…",
+  "account-feature.component.face-recognition.sign-in": "Connexion en cours…",
+  "account-feature.component.face-recognition.sign-in-touch": "Touchez pour démarrer",
+  "account-feature.component.face-recognition.sign-in-analyze": "Analyse en cours…"
+
 }

@@ -1,0 +1,186 @@
+
+/* Splash overlay */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(1200px 600px at 50% 120%, rgba(34,211,238,.10), transparent 60%),
+    linear-gradient(180deg, #0b0f14 0%, #0f1720 100%);
+  transition: transform 720ms cubic-bezier(.22,.61,.36,1);
+  will-change: transform;
+  cursor: pointer;
+
+  &.up {
+    transform: translateY(-100%);
+    pointer-events: none;
+  }
+}
+
+.logo {
+  display: grid;
+  gap: 12px;
+  place-items: center;
+  text-align: center;
+  user-select: none;
+
+  .logo-mark {
+    width: 128px; height: 128px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 56px;
+    background: radial-gradient(circle at 35% 30%, #22d3ee 0%, #8b5cf6 60%, #ff4d8d 100%);
+    color: white;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35), 0 0 40px rgba(34,211,238,.35);
+  }
+
+  .logo-text {
+    font-size: 20px; letter-spacing: .3px; opacity: .9;
+  }
+
+  .hint {
+    font-size: 14px; opacity: .65;
+  }
+}
+
+/* Zone reconnaissance */
+.recog {
+  position: fixed;
+  top:0;left:0;bottom:0;right:0;
+  inset: 0;
+  background: rgba(2, 6, 23, .55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.viewport {
+  position: relative;
+  width: min(92vw, 780px);
+  aspect-ratio: 3 / 4;
+  background: transparent;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,.45);
+}
+
+.video, .canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.mirror .video,
+.mirror .canvas {
+  transform: scaleX(-1) scale(var(--zoom, 1));
+  transform-origin: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  place-items: center;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35));
+  backdrop-filter: blur(1.5px);
+  text-align: center;
+
+  .spinner {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.25);
+    border-top-color: #22d3ee;
+    animation: spin 900ms linear infinite;
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Ring progress (reutilisé) */
+.ring {
+  position: relative;
+  width: 100px; height: 100px;
+  display: grid; place-items: center;
+
+  svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  circle {
+    fill: none; stroke: rgba(255,255,255,.18); stroke-width: 10;
+    stroke-linecap: round;
+  }
+  &::after {
+    /* progress arc via conic-gradient mask */
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    -webkit-mask:
+      radial-gradient(closest-side, transparent 74%, #000 75%),
+      conic-gradient(#000 calc(var(--p, 0) * 360deg), transparent 0);
+    mask:
+      radial-gradient(closest-side, transparent 74%, #000 75%),
+      conic-gradient(#000 calc(var(--p, 0) * 360deg), transparent 0);
+    background: #22d3ee;
+    filter: drop-shadow(0 0 12px rgba(34,211,238,.45));
+  }
+  .pct { position: absolute; font-weight: 600; }
+}
+
+.err {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 90, 118, .12);
+  color: #ffd0d7;
+  border: 1px solid rgba(255, 90, 118, .25);
+}
+
+.viewport {
+  position: relative;
+  border: 8px solid var(--theme-color-border);
+  --zoom: 1;
+
+  overflow: hidden;
+  width: 250px;
+  height: 250px;
+  border-radius: 80px;
+
+  .video, .canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* centre & crop au ratio */
+    transform-origin: center center;
+    transform: scale(var(--zoom)); /* zoom au centre */
+  }
+
+  .video {
+    z-index: 1;
+  }
+
+  .canvas {
+    z-index: 2;
+    pointer-events: none;
+    background: transparent;
+  }
+
+  .viewport.mirror .video,
+  .viewport.mirror .canvas {
+    transform: scaleX(-1) scale(var(--zoom));
+  }
+}
+
+.camera {
+  flex: 1;
+}
+.capturable{
+  border: 8px solid #22d3ee;
+}
+.captured{
+  border: 8px solid var(--theme-color-success);
+}

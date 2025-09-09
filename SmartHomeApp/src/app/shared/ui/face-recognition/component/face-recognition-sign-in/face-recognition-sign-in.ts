@@ -3,108 +3,85 @@ import {
   signal, computed, NgZone, OnDestroy, EventEmitter, Output
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {HttpClient} from '@angular/common/http';
-
 import {FaceRecognitionService} from '../../service/face-recognition.service';
 import {FaceRecognitionLibraryStatus as Status} from '../../data/enum';
+import {TranslatePipe} from '@ngx-translate/core';
 
 type LmPt = { x: number; y: number };
 
 @Component({
   selector: 'app-face-recognition-sign-in',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './face-recognition-sign-in.html',
-  styleUrls: ['./face-recognition-sign-in.scss','../face-recognition-manager/face-recognition-manager.scss']
+  styleUrls: [
+    './face-recognition-sign-in.scss',
+    '../face-recognition-manager/face-recognition-manager.scss'
+  ]
 })
 export class FaceRecognitionSignIn implements OnDestroy {
   protected libs = inject(FaceRecognitionService);
-  private http = inject(HttpClient);
   private zone = inject(NgZone);
 
   @ViewChild('video', {static: false}) videoRef?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas', {static: false}) canvasRef?: ElementRef<HTMLCanvasElement>;
-  @Output() setBiometricData = new EventEmitter<Float32Array>();
-  // UI state
-  camReady = signal(false);
-  capturing = signal(false);
-  verifying = signal(false);
-  progress = signal(0);
-  error = signal<string | null>(null);
-  token = signal<string | null>(null);
 
-  // labels
-  Status = Status;
-  loadBtn = computed(() =>
-    this.libs.status$() === Status.IDLE ? '🔧 Charger les modules'
-      : this.libs.status$() === Status.LOADING ? 'Chargement…'
-        : this.libs.status$() === Status.READY ? 'Modules prêts ✅'
-          : 'Réessayer'
-  );
-  camBtn = computed(() => this.camReady() ? '⏹ Fermer la caméra' : '📷 Activer la caméra');
-  signBtn = computed(() =>
-    this.capturing() ? `⏳ Capture ${Math.round(this.progress() * 100)}%`
-      : this.verifying() ? '🔐 Vérification…'
-        : '✨ Se connecter'
-  );
+  @Output() setBiometricData = new EventEmitter<Float32Array>();
+
+  // UI
+  splashUp$ = signal(false);
+  camReady$ = signal(false);
+  capturing$ = signal(false);
+  progress$ = signal(0);
+  error$ = signal<string | null>(null);
+  isCapturable$ = signal(false);
+  finalized$ = signal(false);
+  loadingLibs$ = computed(() => this.libs.status$() === Status.LOADING);
 
   // capture config
-  private targetFrames = 16;  // nb de frames pour la moyenne
-  private margin = 0.30;      // marge pour le crop 112x112
-  private embedBusy = false;  // pipeline async
-
-  // loop
+  private targetFrames = 16;
+  private margin = 0.30;
+  private embedBusy = false;
   private useRVFC = 'requestVideoFrameCallback'
   in
   HTMLVideoElement
 .
   prototype;
   private onFrameId: number | null = null;
-
-  // accumulators
   private sumEmb: Float32Array | null = null;
   private count = 0;
-
-  // TTL/smoothing ultra light (optionnel)
   private lastLm: LmPt[] | null = null;
   private lastLmTs = 0;
   private LOST_TTL = 300;
   private SMOOTH_W = 0.5;
 
-  // ---- actions ----
-  async onLoadLibs() {
-    this.error.set(null);
-    try {
-      await this.libs.load();
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Échec de chargement des modules');
-    }
-  }
-
-  async onToggleCamera() {
-    this.error.set(null);
-    if (this.camReady()) return this.closeCamera();
+  // -------- Splash → Auto start --------
+  async onSplashClick() {
+    if (this.splashUp$()) return;
+    this.splashUp$.set(true);
+    this.error$.set(null);
     try {
       await this.libs.whenReady();
       await this.openCamera();
+      this.startAutoCapture();
     } catch (e: any) {
-      this.error.set(e?.message ?? 'Impossible d’activer la caméra');
+      this.error$.set(e?.message ?? 'Initialisation impossible');
     }
   }
 
-  async onSignIn() {
-    if (!this.camReady() || this.libs.status$() !== Status.READY || this.capturing() || this.verifying()) return;
-    // reset
-    this.error.set(null);
-    this.token.set(null);
+  private startAutoCapture() {
+    if (!this.camReady$() || this.capturing$()) return;
     this.sumEmb = null;
     this.count = 0;
-    this.progress.set(0);
-    this.capturing.set(true);
-    await this.captureUntilReady();
-    const embedding = this.finalize();
-    this.capturing.set(false);
-    this.setBiometricData.emit(embedding);
+    this.progress$.set(0);
+    this.capturing$.set(true);
+    this.captureUntilReady().then(() => {
+      const embedding = this.finalize();
+      this.capturing$.set(false);
+      this.setBiometricData.emit(embedding);
+      this.finalized$.set(true);
+      this.closeCamera().then()
+    });
   }
 
   // ---- camera lifecycle ----
@@ -116,7 +93,7 @@ export class FaceRecognitionSignIn implements OnDestroy {
     video.muted = true;
     await this.whenCanPlay(video);
     await video.play();
-    this.camReady.set(true);
+    this.camReady$.set(true);
     this.startLoop();
   }
 
@@ -128,7 +105,9 @@ export class FaceRecognitionSignIn implements OnDestroy {
       v.pause();
       v.srcObject = null;
     }
-    this.camReady.set(false);
+
+    this.camReady$.set(false);
+    this.isCapturable$.set(false);
   }
 
   private whenCanPlay(v: HTMLVideoElement) {
@@ -153,8 +132,6 @@ export class FaceRecognitionSignIn implements OnDestroy {
       const dw = vw * s, dh = vh * s;
       return {s, dx: (cw - dw) / 2, dy: (ch - dh) / 2, dw, dh};
     };
-    const map = (p: LmPt, vw: number, vh: number, f: { s: number; dx: number; dy: number }) =>
-      ({x: f.dx + (p.x * vw) * f.s, y: f.dy + (p.y * vh) * f.s});
 
     const step = (now: number) => {
       this.onFrameId = this.useRVFC
@@ -175,9 +152,15 @@ export class FaceRecognitionSignIn implements OnDestroy {
       if (!this.libs.landmarker) return;
 
       const res = this.libs.landmarker.detectForVideo(video, now);
-      let lm = res?.faceLandmarks?.[0] as LmPt[] | undefined;
 
-      // petit TTL/smoothing
+      // ---- set isCapturable$ en fonction de la détection ACTUELLE (sans TTL)
+      const detectedNow = !!(res?.faceLandmarks && res.faceLandmarks.length > 0);
+      if (this.isCapturable$() !== detectedNow) {
+        this.isCapturable$.set(detectedNow);
+      }
+
+      // Landmarks pour crop (avec smoothing/TTL uniquement pour stabilité visuelle)
+      let lm = res?.faceLandmarks?.[0] as LmPt[] | undefined;
       if (lm && lm.length) {
         if (this.lastLm) {
           const w = this.SMOOTH_W, out = new Array(lm.length);
@@ -195,26 +178,13 @@ export class FaceRecognitionSignIn implements OnDestroy {
         this.lastLm = null;
       }
 
-      // overlay simple (facultatif)
-      if (lm) {
-        const vw = video.videoWidth, vh = video.videoHeight;
-        const fit = fitCover(vw, vh, r.width, r.height);
-        ctx.fillStyle = '#22d3ee';
-        for (const p of lm) {
-          const q = map(p, vw, vh, fit);
-          ctx.beginPath();
-          ctx.arc(q.x, q.y, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      // pipeline capture si en cours
-      if (this.capturing() && lm && !this.embedBusy && this.count < this.targetFrames) {
+      // pipeline capture
+      if (this.capturing$() && lm && !this.embedBusy && this.count < this.targetFrames) {
         this.embedBusy = true;
         const crop = this.makeCrop112(video, lm, this.margin);
         this.forwardEmbedding(crop).then(emb => {
           this.accumulate(emb);
-          this.progress.set(Math.min(1, this.count / this.targetFrames));
+          this.progress$.set(Math.min(1, this.count / this.targetFrames));
         }).finally(() => this.embedBusy = false);
       }
     };
@@ -245,7 +215,7 @@ export class FaceRecognitionSignIn implements OnDestroy {
   private captureUntilReady(): Promise<void> {
     return new Promise(resolve => {
       const check = () => {
-        if (!this.capturing()) return resolve();           // annulé
+        if (!this.capturing$()) return resolve();
         if (this.count >= this.targetFrames) return resolve();
         requestAnimationFrame(check);
       };
@@ -326,11 +296,7 @@ export class FaceRecognitionSignIn implements OnDestroy {
     return out;
   }
 
-  // cleanup
   ngOnDestroy() {
     this.closeCamera();
   }
-
-  protected readonly HTMLInputElement = HTMLInputElement;
 }
-
