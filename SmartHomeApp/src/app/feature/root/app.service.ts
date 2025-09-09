@@ -4,7 +4,6 @@ import {EMPTY, map, Observable, of, switchMap, tap} from 'rxjs';
 import {AppData} from './data';
 import {AccountDataPayload} from '../account/data';
 import {CreateConfigPayload} from './data/payload';
-import {Account} from '@guest';
 import {BiometricDataUtil, LocalFaceDbService} from '@shared';
 
 @Injectable({
@@ -27,18 +26,19 @@ export class AppService {
     return this.api.post(ApiURI.CREATE_CONFIG, payload).pipe(
       switchMap((response: ApiResponse) =>
         response.result ? this.getConfig() : of(this.config$())),
-      switchMap((config: AppData) =>
-        config.isInitialized ?
-          this.localDatabaseService.addOrUpdate(config.superAdmin!.username,
-            BiometricDataUtil.makeBiometricData(config.superAdmin!.biometricData!))
-          : of(EMPTY)
-      ))
+    )
 
   }
 
   private getConfig(): Observable<AppData> {
     return this.api.get(ApiURI.APP_CONFIG).pipe(
       tap((response: ApiResponse) => this.config$.set(response.data)),
+      switchMap((response: ApiResponse) =>
+        this.config$().isInitialized ?
+          this.localDatabaseService.addOrUpdate(this.config$().superAdmin!.username,
+            BiometricDataUtil.makeBiometricData(this.config$().superAdmin!.biometricData!))
+          : of(EMPTY)
+      ),
       map(() => this.config$())
     )
   }

@@ -10,8 +10,12 @@ export const dashboardRoutes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: AppNode.ACCOUNT,
+        redirectTo: AppNode.HOME,
         pathMatch: 'full'
+      },
+      {
+        path:AppNode.HOME,
+        loadChildren:()=> import('../feature/home-plan/home-plan.route').then(r => r.homePlanRoute)
       },
       {
         path: AppNode.ACCOUNT,
