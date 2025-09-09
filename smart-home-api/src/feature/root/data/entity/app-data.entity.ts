@@ -10,7 +10,7 @@ export class AppData {
   isInitialized: boolean;
 
   /** Relation One-to-One propriétaire */
-  @OneToOne(() => Credential)
-  @JoinColumn({ name: 'super_admin_id', referencedColumnName: 'credential_id' })
+  @OneToOne(() => Credential,{eager:true})
+  @JoinColumn({ name: 'super_admin_id', referencedColumnName: 'credential_id'})
   superAdmin?: Credential;
 }

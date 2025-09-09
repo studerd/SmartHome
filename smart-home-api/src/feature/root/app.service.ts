@@ -6,8 +6,7 @@ import { isNil } from 'lodash';
 import { Builder } from 'builder-pattern';
 import { ulid } from 'ulid';
 import { SecurityService } from '../../security/service';
-import { CredentialDataPayload } from '../../security/data/payload/credential-data.payload';
-import { Credential } from '@security';
+import { CreateConfigPayload, Credential } from '@security';
 
 @Injectable()
 export class AppService {
@@ -26,15 +25,19 @@ export class AppService {
     return appConfig;
   }
 
-  public async create(payload: CredentialDataPayload) {
-    const credential: Credential = await this.securityService.sendModification(payload);
-    const appData: AppData = Builder<AppData>().app_id(ulid()).isInitialized(true).superAdmin(credential).build();
+  public async create(payload: CreateConfigPayload) {
+    const credential: Credential = await this.securityService.sendModification(payload.superAdminData);
+    const appData: AppData = Builder<AppData>().app_id(payload.id)
+      .isInitialized(true)
+      .superAdmin(credential)
+      .build();
     await this.repository.save(appData);
     return await this.getInfo();
   }
 
   private async reqOne() {
     return await this.repository.createQueryBuilder('t')
+      .leftJoinAndSelect('t.superAdmin', 'c')
       .limit(1)
       .getOne();
   }

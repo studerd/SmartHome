@@ -1,8 +1,6 @@
 // local-face-db.service.ts
 import {Injectable} from '@angular/core';
-import {
-  Observable, Subject, defer, map, switchMap, catchError, throwError, of, shareReplay, tap
-} from 'rxjs';
+import {catchError, defer, map, Observable, shareReplay, Subject, switchMap, tap, throwError} from 'rxjs';
 import {BiometricData, LocalFaceUser} from '../data';
 
 @Injectable({providedIn: 'root'})

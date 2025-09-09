@@ -5,6 +5,8 @@ import {SignInUtil} from '../../util';
 import {FaceRecognitionSignIn} from '@shared';
 import {SignInPayload} from '../../data/payload';
 import {SecurityService} from '../../service';
+import {tap} from 'rxjs';
+import {ApiResponse} from '@api';
 
 @Component({
   selector: 'app-sign-in-page',
@@ -19,6 +21,7 @@ import {SecurityService} from '../../service';
 export class SignInPage {
   private readonly securityService: SecurityService = inject(SecurityService);
   pins$: WritableSignal<SignInPin[]> = signal(SignInUtil.genPins());
+  hideBioForm$: WritableSignal<boolean> = signal(false);
   signInPayload: SignInPayload = {username: '', password: '', biometricData: []};
   readonly alphabets: string[] = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -40,6 +43,12 @@ export class SignInPage {
 
   setBiometricData(data: Float32Array): void {
     this.signInPayload.biometricData = Array.from(data);
-    this.securityService.signIn(this.signInPayload).subscribe();
+    this.securityService.signIn(this.signInPayload)
+      .pipe(
+        tap((response: ApiResponse) => {
+          this.hideBioForm$.set(!response.result)
+        })
+      )
+      .subscribe();
   }
 }

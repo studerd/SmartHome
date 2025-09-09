@@ -18,6 +18,7 @@ import {isEmpty} from 'lodash';
   styleUrl: './app-config-manager.scss'
 })
 export class AppConfigManager {
+
   @Output() saveData: EventEmitter<AccountDataPayload> = new EventEmitter<AccountDataPayload>();
   accountData$: WritableSignal<AccountDataPayload> = signal({
     username: '',
@@ -26,8 +27,6 @@ export class AppConfigManager {
     biometricData: BiometricDataUtil.makeBiometricData([])
   });
   accountDataIsValid$: Signal<boolean> = computed(() => this.setAccountDataValid(this.accountData$()));
-  private readonly accountService: AccountService = inject(AccountService);
-  private readonly localDatabaseService: LocalFaceDbService = inject(LocalFaceDbService);
 
   setBiometricData(biometricData: BiometricData) {
     this.accountData$.set({...this.accountData$(), biometricData})
@@ -39,6 +38,7 @@ export class AppConfigManager {
   }
 
   save(): void {
+    console.log('save');
     if (this.accountDataIsValid$()) {
       this.saveData.emit(this.accountData$());
     }

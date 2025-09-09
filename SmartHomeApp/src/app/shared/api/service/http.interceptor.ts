@@ -11,7 +11,7 @@ import {ApiResponse, Token} from '../model';
 import {AddTokenHeaderFn, HttpInterceptorCommonErrorHandlerFn, HttpInterceptorHandlerFn} from '../type';
 
 const baseURL: string = environment.apiURL;
-const publicRoute: string[] = [`${baseURL}`, `${baseURL}account/signin`, `${baseURL}account/admin-signin`, `${baseURL}account/signup`, `${baseURL}account/refresh`];
+const publicRoute: string[] = [`${baseURL}`, `${baseURL}${ApiURI.SIGN_IN}`, `${baseURL}${ApiURI.CREATE_CONFIG}`, `${baseURL}${ApiURI.REFRESH_TOKEN}`, `${baseURL}${ApiURI.APP_CONFIG}`];
 // Main function of httpInterceptor
 export const HttpInterceptor: HttpInterceptorFn = (req: HttpRequest<any>, next: HttpHandlerFn) => {
   //if route is public

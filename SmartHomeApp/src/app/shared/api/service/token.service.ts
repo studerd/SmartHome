@@ -10,6 +10,10 @@ export class TokenService {
   token$: WritableSignal<Token> = signal(this.getToken());
   private readonly tokenSaveHandler: EffectRef = effect(() => this.handleTokenChange(this.token$()));
 
+  public logOut(): void {
+    this.setToken({isEmpty: true, token: '', refreshToken: ''});
+  }
+
   public setToken(token: Token): void {
     if (!token.isEmpty) {
       this.token$.set(token);
@@ -36,3 +40,4 @@ export class TokenService {
     return {token: '', refreshToken: '', isEmpty: true};
   }
 }
+
