@@ -11,10 +11,12 @@ import {
   ViewChild
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FaceRecognitionService} from '../service/face-recognition.service';
-import {FaceRecognitionLibraryStatus} from '../enum';
+import {FaceRecognitionService} from '../../service/face-recognition.service';
+import {FaceRecognitionLibraryStatus} from '../../data';
 import {TranslatePipe} from '@ngx-translate/core';
 import {delay} from 'rxjs';
+import {BiometricData} from '../../data';
+import {BiometricDataUtil} from '../../util/biometric-data.util';
 
 
 type LmPt = { x: number; y: number };
@@ -33,7 +35,7 @@ export class FaceRecognitionManager implements OnDestroy {
 
   @ViewChild('video', {static: false}) videoRef?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas', {static: false}) canvasRef?: ElementRef<HTMLCanvasElement>;
-  @Output() embeddingFinalized = new EventEmitter<Float32Array>();
+  @Output() embeddingFinalized = new EventEmitter<BiometricData>();
   // --- UI state
   dataIsOk$ = signal(false);
   camReady$ = signal(false);
@@ -255,7 +257,7 @@ export class FaceRecognitionManager implements OnDestroy {
             this.embedding = this.finalize();
             this.capturing$.set(false);
             this.dataIsOk$.set(true);
-            this.embeddingFinalized.emit(this.embedding);
+            this.embeddingFinalized.emit(BiometricDataUtil.makeBiometricData(this.embedding));
           }
         }).finally(() => this.embedBusy = false);
       }

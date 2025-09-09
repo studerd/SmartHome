@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SignInFace } from './sign-in-face';
+import { FaceRecognitionSignIn } from './face-recognition-sign-in';
 
-describe('SignInFace', () => {
-  let component: SignInFace;
-  let fixture: ComponentFixture<SignInFace>;
+describe('FaceRecognitionSignIn', () => {
+  let component: FaceRecognitionSignIn;
+  let fixture: ComponentFixture<FaceRecognitionSignIn>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SignInFace]
+      imports: [FaceRecognitionSignIn]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SignInFace);
+    fixture = TestBed.createComponent(FaceRecognitionSignIn);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

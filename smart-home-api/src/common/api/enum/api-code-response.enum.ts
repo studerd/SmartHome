@@ -1,5 +1,6 @@
 export enum ApiCodeResponse {
   COMMON = 'COMMON',
+  COMMON_SUCCESS = 'api.common.success',
   NO_TOKEN_FOUNDED = 'NO_TOKEN_FOUNDED',
   TOKEN_EXPIRED = 'TOKEN_EXPIRED',
   USER_NOT_FOUND = 'USER_NOT_FOUND',

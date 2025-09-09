@@ -1,5 +1,7 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm';
+import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryColumn, ValueTransformer } from 'typeorm';
 import { ulid } from 'ulid';
+
+
 
 @Entity()
 export class Credential {
@@ -19,11 +21,7 @@ export class Credential {
   created: Date;
   @CreateDateColumn()
   updated: Date;
-
-  @BeforeInsert()
-  generateId() {
-    if (!this.credential_id) {
-      this.credential_id = ulid();
-    }
-  }
+  // Empreinte biométrique (embedding 512-D) – stockée en JSON (portable)
+  @Column({ name: 'biometric_data', type: 'jsonb', nullable: true }) // 'json' si pas Postgres
+  biometricData: number[]
 }

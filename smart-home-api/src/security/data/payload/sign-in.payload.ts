@@ -5,4 +5,6 @@ export class SignInPayload {
   username: string;
   @ApiProperty()
   password: string;
+  @ApiProperty()
+  biometricData?: number[];
 }

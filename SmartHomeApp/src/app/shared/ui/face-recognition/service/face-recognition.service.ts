@@ -1,6 +1,6 @@
 // face-recognition.service.ts (extrait pertinent)
 import { Injectable, NgZone, signal } from '@angular/core';
-import { FaceRecognitionLibraryStatus as Status } from '../enum';
+import { FaceRecognitionLibraryStatus as Status } from '../data/enum';
 declare global {
   interface Navigator { hardwareConcurrency?: number; }
 }

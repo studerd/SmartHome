@@ -1,7 +1,8 @@
 import {inject, Injectable} from '@angular/core';
 import {ApiResponse, ApiService, ApiURI} from '@api';
-import {AccountDataPayload} from '../data';
-import {Observable} from 'rxjs';
+import {Account, AccountDataPayload} from '../data';
+import {map, Observable} from 'rxjs';
+import {AccountUtil} from '../util';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,10 @@ import {Observable} from 'rxjs';
 export class AccountService {
   private api: ApiService = inject(ApiService);
 
-  public sendModification(accountDataPayload: AccountDataPayload): Observable<ApiResponse> {
-    return this.api.post(ApiURI.ACCOUNT_SEND_MODIFICATION, accountDataPayload);
+  public sendModification(accountDataPayload: AccountDataPayload): Observable<Account> {
+    return this.api.post(ApiURI.ACCOUNT_SEND_MODIFICATION, accountDataPayload)
+      .pipe(map((response:ApiResponse)=>
+      response.result? AccountUtil.fromDto(response.data) : AccountUtil.getEmpty()
+      ))
   }
 }

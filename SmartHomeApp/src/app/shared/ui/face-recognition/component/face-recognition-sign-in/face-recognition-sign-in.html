@@ -1,0 +1,51 @@
+<div class="frm">
+  <div class="panel">
+    <h2>Connexion par reconnaissance faciale</h2>
+    <p class="muted">1) Charge les modules, 2) active la caméra, 3) saisis ton identifiant, 4) clique sur “Se connecter”.</p>
+
+    <!-- Charger les libs -->
+    <div class="row">
+      <button class="btn" (click)="onLoadLibs()">{{ loadBtn() }}</button>
+    </div>
+
+    <div class="loading" *ngIf="libs.status$()===Status.LOADING">
+      <div class="spinner"></div><span>Chargement des modules…</span>
+    </div>
+
+    <p class="err" *ngIf="libs.error$()">{{ libs.error$() }}</p>
+    <p class="err" *ngIf="error()">{{ error() }}</p>
+
+
+    <!-- Boutons caméra / sign-in -->
+    <div class="row">
+      <button class="btn" (click)="onToggleCamera()">{{ camBtn() }}</button>
+      <button class="btn ghost"
+              [disabled]="!camReady() || libs.status$()!==Status.READY  || capturing() || verifying()"
+              (click)="onSignIn()">
+        {{ signBtn() }}
+      </button>
+    </div>
+
+    <!-- Viewport -->
+    <div class="camera" *ngIf="libs.status$()===Status.READY">
+      <div class="viewport mirror" [style.--zoom]="1.2">
+        <video #video class="video" playsinline muted></video>
+        <canvas #canvas class="canvas"></canvas>
+
+        <!-- Overlay capture -->
+        <div class="overlay" *ngIf="capturing() || verifying()">
+          <div class="ring" [style.--p]="progress()">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44"/></svg>
+            <div class="pct" *ngIf="capturing()">{{ (progress()*100) | number:'1.0-0' }}%</div>
+            <div class="pct" *ngIf="verifying()">🔐</div>
+          </div>
+          <p *ngIf="capturing()">Capture en cours…</p>
+          <p *ngIf="verifying()">Vérification…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Résultat -->
+    <div class="ok" *ngIf="token()">✅ Connecté !</div>
+  </div>
+</div>

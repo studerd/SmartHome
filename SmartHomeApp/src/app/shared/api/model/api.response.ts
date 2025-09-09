@@ -1,4 +1,4 @@
-import {ApiCodeResponse} from '../enum/api-code.response';
+import {ApiCodeResponse} from '../enum';
 
 export interface ApiResponse {
   result: boolean;

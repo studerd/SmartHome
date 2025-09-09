@@ -3,12 +3,19 @@ import { SecurityService } from './service';
 import { Credential, RefreshPayload, SignInPayload, SignUpPayload } from './data';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Public, User } from '@common';
+import { CredentialDataPayload } from './data/payload/credential-data.payload';
 
 @ApiBearerAuth('access-token')
 @ApiTags('Account')
 @Controller('account')
 export class SecurityController {
   constructor(private readonly service: SecurityService) {
+  }
+
+  @Public()
+  @Post('send-modification')
+  public sendModification(@Body()payload: CredentialDataPayload) {
+    return this.service.sendModification(payload);
   }
 
   @Public()

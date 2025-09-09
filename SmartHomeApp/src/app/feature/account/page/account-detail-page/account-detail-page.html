@@ -11,7 +11,7 @@
   <h2>Compte de Nicolas</h2>
   <div class="content">
     <div class="part">
-      <app-account-detail-data-manager></app-account-detail-data-manager>
+      <app-account-detail-data-manager (formChanged)="setAccountData($event)"></app-account-detail-data-manager>
     </div>
     <div class="part">
       <app-face-recognition-manager (embeddingFinalized)="setBiometricData($event)"></app-face-recognition-manager></div>

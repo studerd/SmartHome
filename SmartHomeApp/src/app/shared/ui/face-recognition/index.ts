@@ -1,1 +1,4 @@
-export * from './face-recognition-manager/face-recognition-manager';
+export * from './component';
+export * from './data';
+export * from './util';
+export * from './service';
