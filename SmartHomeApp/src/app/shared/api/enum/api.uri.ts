@@ -6,4 +6,5 @@ export enum ApiURI {
   ME = 'account/me',
   ACCOUNT_SEND_MODIFICATION = 'account/send-modification',
   REFRESH_TOKEN = 'account/refresh',
+  GET_ROOMS = 'room/all'
 }
